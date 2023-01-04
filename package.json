@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "deploy": "hardhat --network matic run scripts/upgradable-deploy-matic.ts",
+    "upgrade:dropManager": "hardhat --network matic run scripts/upgrade-proxy-drop-manager-matic.ts",
     "verify": "hardhat verify --network matic",
     "compile": "hardhat compile",
     "test": "hardhat test",
