@@ -3,6 +3,7 @@ import { ethers, upgrades } from "hardhat";
 async function main() {
   const EverDropManager = await ethers.getContractFactory("EverDropManager");
   const EverNFT = await ethers.getContractFactory("EverNFT");
+  const UsdcAddress = '0x0fa8781a83e46826621b3bc094ea2a0212e71b23'
 
   const everDropManager = await upgrades.deployProxy(EverDropManager, [process.env.PUBLIC_KEY], { kind: 'uups' })
   await everDropManager.deployed();
@@ -11,9 +12,11 @@ async function main() {
       EverNFT,
       [
           everDropManager.address,
-        'https://api-dev.everbloom.app/v1/print/',
-        'EverNFT',
-        'EverNFT',
+          UsdcAddress,
+          process.env.PUBLIC_KEY,
+          'https://api-dev.everbloom.app/v1/ever-nft/',
+          'EverNFT',
+          'EverNFT',
       ],
       { kind: 'uups' }
       );
@@ -30,6 +33,8 @@ main().catch((error) => {
   process.exitCode = 1;
 });
 
-// EverDropManager Contract deployed to address: 0x96E935FB549765b8ea63A6c3372FD6F6405e74af
-// EverNFT Contract deployed to address: 0x6faD8e04Ff7d0c2D97fB0624E4B8756Fd47eaB4f
+/*
+EverDropManager Contract deployed to address: 0xd8FCB53965E3646EA11B0972eBb5f17eC4f36021
+EverNFT Contract deployed to address: 0x9cbf8826C78eAE0ae9BCf8C1765ad8330ff78ceF
+*/
 

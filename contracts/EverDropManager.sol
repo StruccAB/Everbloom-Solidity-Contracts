@@ -210,9 +210,6 @@ contract EverDropManager is
         // check the conflict of drop external id
         if (externalIdToDropId[_externalId] != 0) {
             revert DropConflict(_externalId);
-        } else {
-            if (drops.length > 0)
-                revert DropConflict(_externalId);
         }
         // validate the interface of _nft address
         if (!ERC165CheckerUpgradeable.supportsInterface(_nft, type(IEverNFT).interfaceId))

@@ -32,6 +32,7 @@ describe("Ever Drop Manager", function () {
         await expect(createDrop(everDropManager, everNFT, creator1)).to.be.not.reverted;
         await expect(await everDropManager.drops(0)).to.be.not.null;
         await expect(await everDropManager.externalIdToDropId(getExternalId())).to.equal(0);
+        await expect(createDrop(everDropManager, everNFT, creator1)).to.be.not.reverted;
       });
 
       it("Should not create a drop when nft address is invalid", async function () {
@@ -48,8 +49,9 @@ describe("Ever Drop Manager", function () {
         await everDropManager.addSubAdmin(subAdmin1.address);
         await everDropManager.connect(subAdmin1).addCreator(creator1.address);
         await createDrop(everDropManager, everNFT, creator1, { externalId: getExternalId(1) })
+        await createDrop(everDropManager, everNFT, creator1, { externalId: getExternalId(2) })
 
-        await expect(createDrop(everDropManager, everNFT, creator1, { externalId: getExternalId(1) }))
+        await expect(createDrop(everDropManager, everNFT, creator1, { externalId: getExternalId(2) }))
             .to.be.revertedWithCustomError(everErrors, 'DropConflict');
       });
 
