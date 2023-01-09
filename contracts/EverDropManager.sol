@@ -27,7 +27,7 @@ contract EverDropManager is
     ERC165StorageUpgradeable,
     EverErrors
 {
-    event NewDrop(uint256 indexed dropId, string indexed externalId, address nftContractAddress);
+    event NewDrop(uint256 indexed dropId, string externalId, string indexed externalIdTopic, address nftContractAddress);
     event DropSaleInfoUpdated(uint256 dropId, uint64 saleOpenTime, uint64 saleCloseTime);
     event DropSupplyUpdated(uint256 dropId, uint128 supply);
     event DropRightHolderUpdated(uint256 dropId, address owner);
@@ -220,7 +220,7 @@ contract EverDropManager is
         drops.push(Drop(dropId, 0, _saleOpenTime, _saleCloseTime, dropTokenInfo, _externalId, _owner, _nft, _merkle));
         externalIdToDropId[_externalId] = dropId;
 
-        emit NewDrop(dropId, _externalId, _nft);
+        emit NewDrop(dropId, _externalId, _externalId, _nft);
     }
 
     // -------------------- Sub Admin-Only Functions -------------------- //
