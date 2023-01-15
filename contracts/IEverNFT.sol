@@ -47,7 +47,6 @@ interface IEverNFT {
      * @param _to : address of the nft receiver
      * @param _dropId : drop identifier
      * @param _quantity : quantity to be minted
-     * @param _amount : price of the total NFTs
      * @param _externalIds : ids of the print in Everbloom platform
      * @param _proof : Merkle proof of the owner
      */
@@ -55,7 +54,6 @@ interface IEverNFT {
         address _to,
         uint256 _dropId,
         uint128 _quantity,
-        uint256 _amount,
         string[] calldata _externalIds,
         bytes32[] calldata _proof
     ) external payable;
