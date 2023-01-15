@@ -42,6 +42,27 @@ interface IEverNFT {
 
     /**
      * @notice
+     *  Return the ineligibility reason for not minting NFT
+     *
+     * @param _to : address of the nft receiver
+     * @param _dropId : drop identifier
+     * @param _quantity : quantity to be minted
+     * @param _externalIds : ids of the print in Everbloom platform
+     * @param _proof : Merkle proof of the owner
+     */
+    function getIneligibilityReason(
+        address _to,
+        uint256 _dropId,
+        uint128 _quantity,
+        string[] calldata _externalIds,
+        bytes32[] calldata _proof
+    )
+    external
+    view
+    returns (string memory);
+
+    /**
+     * @notice
      *  Let a user mint `_quantity` token(s) of the given `_dropId`
      *
      * @param _to : address of the nft receiver
