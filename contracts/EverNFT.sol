@@ -133,12 +133,77 @@ contract EverNFT is
 
     /**
      * @notice
+     *  Return the ineligibility reason for not minting NFT
+     *
+     * @param _to : address of the nft receiver
+     * @param _dropId : drop identifier
+     * @param _quantity : quantity to be minted
+     * @param _externalIds : ids of the print in Everbloom platform
+     * @param _proof : Merkle proof of the owner
+     */
+    function getIneligibilityReason(
+        address _to,
+        uint256 _dropId,
+        uint128 _quantity,
+        string[] calldata _externalIds,
+        bytes32[] calldata _proof
+    )
+    external
+    view
+    returns (string memory)
+    {
+        IEverDropManager.Drop memory drop = IEverDropManager(dropManager).getDrop(_dropId);
+
+        // Check if the drop is not sold-out
+        if (drop.sold == drop.tokenInfo.supply) return 'DropSoldOut';
+        // Check that there are enough tokens available for sale
+        if (drop.sold + _quantity > drop.tokenInfo.supply)
+            return 'NotEnoughTokensAvailable';
+        if (_quantity != _externalIds.length) {
+            return 'IncorrectExternalIds';
+        }
+        // Check if the drop sale is started
+        if (block.timestamp < drop.saleOpenTime) {
+            if (drop.merkleRoot == 0x0)
+                return 'SaleNotStarted';
+
+            bool isWhitelisted = MerkleProof.verify(
+                _proof,
+                drop.merkleRoot,
+                keccak256(bytes.concat(keccak256(abi.encode(_to))))
+            );
+
+            if (!isWhitelisted)
+                return 'NotWhiteListed';
+        }
+        // Check if the drop sale is ended
+        if (block.timestamp > drop.saleCloseTime)
+            return 'SaleEnded';
+        if (drop.tokenInfo.price > 0) {
+            // Check that user has sufficient balance
+            if (IERC20(erc20tokenAddress).balanceOf(msg.sender) < drop.tokenInfo.price * _quantity)
+                return 'InsufficientBalance';
+
+            // Check that user has approved sufficient balance
+            if (IERC20(erc20tokenAddress).allowance(msg.sender, address(this)) < drop.tokenInfo.price * _quantity)
+                return 'IncorrectAmountSent';
+        }
+
+        for (uint128 i = 0; i < _quantity; ++i) {
+            if (externalIdToTokenId[_externalIds[i]] != 0)
+                return 'PrintConflict';
+        }
+
+        return '';
+    }
+
+    /**
+     * @notice
      *  Let a user mint `_quantity` token(s) of the given `_dropId`
      *
      * @param _to : address of the nft receiver
      * @param _dropId : drop identifier
      * @param _quantity : quantity to be minted
-     * @param _amount : price of the total NFTs
      * @param _externalIds : ids of the print in Everbloom platform
      * @param _proof : Merkle proof of the owner
      */
@@ -146,7 +211,6 @@ contract EverNFT is
         address _to,
         uint256 _dropId,
         uint128 _quantity,
-        uint256 _amount,
         string[] calldata _externalIds,
         bytes32[] calldata _proof
     )
@@ -181,13 +245,14 @@ contract EverNFT is
         // Check if the drop sale is ended
         if (block.timestamp > drop.saleCloseTime)
             revert SaleEnded();
-        // Check that user is sending the correct amount
-        if (_amount != drop.tokenInfo.price * _quantity)
-            revert IncorrectAmountSent();
-        // Check that user has sufficient balance if price > 0
         if (drop.tokenInfo.price > 0) {
+            // Check that user has sufficient balance
             if (IERC20(erc20tokenAddress).balanceOf(msg.sender) < drop.tokenInfo.price * _quantity)
                 revert InsufficientBalance();
+
+            // Check that user has approved sufficient balance
+            if (IERC20(erc20tokenAddress).allowance(msg.sender, address(this)) < drop.tokenInfo.price * _quantity)
+                revert IncorrectAmountSent();
         }
 
         for (uint128 i = 0; i < _quantity; ++i) {
@@ -206,8 +271,8 @@ contract EverNFT is
         IEverDropManager(dropManager).updateDropCounter(drop.dropId, _quantity);
 
         // transfer Fee to the treasury address
-        if (_amount > 0) {
-            IERC20(erc20tokenAddress).transferFrom(msg.sender, treasury, _amount);
+        if (drop.tokenInfo.price > 0) {
+            IERC20(erc20tokenAddress).transferFrom(msg.sender, treasury, drop.tokenInfo.price * _quantity);
         }
     }
 

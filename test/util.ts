@@ -120,7 +120,6 @@ export async function mintNFTs(
     buyer: SignerWithAddress,
     dropId: number,
     quantity: number,
-    amount: number,
     externalIds: string[],
     merkleProof: string[] = [NFT_MERKLE_ROOT],
 ) {
@@ -128,7 +127,6 @@ export async function mintNFTs(
         buyer.address,
         dropId,
         quantity,
-        amount,
         externalIds,
         merkleProof,
     )
