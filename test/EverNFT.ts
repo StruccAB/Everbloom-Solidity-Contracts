@@ -5,7 +5,7 @@ import { StandardMerkleTree } from "@openzeppelin/merkle-tree";
 import {
   approveToken,
   BASE_URI, createDrop,
-  deployContracts, getExternalId, mintNFTs,
+  deployContracts, getIneligibilityMintNFTs, getExternalId, mintNFTs,
   NFT_NAME, NFT_PRICE,
   NFT_SYMBOL, transferToken,
 } from "./util";
@@ -247,6 +247,13 @@ describe("Ever NFT", function () {
             quantity,
             [getExternalId(1)],
         )).to.be.not.reverted;
+        expect(await getIneligibilityMintNFTs(
+            everNFT,
+            user1,
+            dropId,
+            quantity,
+            [getExternalId(1)],
+        )).to.be.equal('PrintConflict');
         await expect(mintNFTs(
             everNFT,
             user1,
@@ -269,6 +276,13 @@ describe("Ever NFT", function () {
         await transferToken(usdc, owner, user1, amount);
         await approveToken(usdc, user1, everNFT.address , amount / 2);
 
+        expect(await getIneligibilityMintNFTs(
+            everNFT,
+            user1,
+            dropId,
+            quantity,
+            Array(quantity).fill(0).map((_, index) => getExternalId(index)),
+        )).to.be.equal('IncorrectAmountSent');
         await expect(mintNFTs(
             everNFT,
             user1,
@@ -291,6 +305,13 @@ describe("Ever NFT", function () {
         await transferToken(usdc, owner, user1, amount);
         await approveToken(usdc, user1, everNFT.address , updatedPrice);
 
+        expect(await getIneligibilityMintNFTs(
+            everNFT,
+            user1,
+            dropId,
+            quantity,
+            Array(quantity).fill(0).map((_, index) => getExternalId(index)),
+        )).to.be.equal('InsufficientBalance');
         await expect(mintNFTs(
             everNFT,
             user1,
@@ -312,6 +333,13 @@ describe("Ever NFT", function () {
         await transferToken(usdc, owner, user1, amount);
         await approveToken(usdc, user1, everNFT.address , amount);
 
+        expect(await getIneligibilityMintNFTs(
+            everNFT,
+            user1,
+            dropId,
+            quantity,
+            Array(quantity).fill(0).map((_, index) => getExternalId(index)),
+        )).to.be.equal('SaleNotStarted');
         await expect(mintNFTs(
             everNFT,
             user1,
@@ -344,6 +372,14 @@ describe("Ever NFT", function () {
         await transferToken(usdc, owner, user1, amount);
         await approveToken(usdc, user1, everNFT.address , amount);
 
+        expect(await getIneligibilityMintNFTs(
+            everNFT,
+            user1,
+            dropId,
+            quantity,
+            Array(quantity).fill(0).map((_, index) => getExternalId(index)),
+            proof
+        )).to.be.equal('NotWhiteListed');
         await expect(mintNFTs(
             everNFT,
             user1,
@@ -367,6 +403,13 @@ describe("Ever NFT", function () {
         await transferToken(usdc, owner, user1, amount);
         await approveToken(usdc, user1, everNFT.address , amount);
 
+        expect(await getIneligibilityMintNFTs(
+            everNFT,
+            user1,
+            dropId,
+            quantity,
+            Array(quantity).fill(0).map((_, index) => getExternalId(index)),
+        )).to.be.equal('SaleEnded');
         await expect(mintNFTs(
             everNFT,
             user1,
@@ -396,6 +439,13 @@ describe("Ever NFT", function () {
             Array(quantity).fill(0).map((_, index) => getExternalId(index)),
         );
 
+        expect(await getIneligibilityMintNFTs(
+            everNFT,
+            user1,
+            dropId,
+            quantity,
+            Array(quantity).fill(0).map((_, index) => getExternalId(index)),
+        )).to.be.equal('DropSoldOut');
         await expect(mintNFTs(
             everNFT,
             user1,
@@ -417,6 +467,13 @@ describe("Ever NFT", function () {
         await transferToken(usdc, owner, user1, amount);
         await approveToken(usdc, user1, everNFT.address , amount);
 
+        expect(await getIneligibilityMintNFTs(
+            everNFT,
+            user1,
+            dropId,
+            quantity,
+            Array(quantity).fill(0).map((_, index) => getExternalId(index)),
+        )).to.be.equal('NotEnoughTokensAvailable');
         await expect(mintNFTs(
             everNFT,
             user1,
@@ -436,6 +493,13 @@ describe("Ever NFT", function () {
         await transferToken(usdc, owner, user1, amount);
         await approveToken(usdc, user1, everNFT.address , amount);
 
+        expect(await getIneligibilityMintNFTs(
+            everNFT,
+            user1,
+            dropId,
+            quantity,
+            [getExternalId(1)],
+        )).to.be.equal('IncorrectExternalIds');
         await expect(mintNFTs(
             everNFT,
             user1,
@@ -443,6 +507,13 @@ describe("Ever NFT", function () {
             quantity,
             [getExternalId(1)],
         )).to.be.revertedWithCustomError(everErrors, 'IncorrectExternalIds');
+        expect(await getIneligibilityMintNFTs(
+            everNFT,
+            user1,
+            dropId,
+            quantity - 1,
+            Array(quantity).fill(0).map((_, index) => getExternalId(index)),
+        )).to.be.equal('IncorrectExternalIds');
         await expect(mintNFTs(
             everNFT,
             user1,
