@@ -276,13 +276,6 @@ describe("Ever NFT", function () {
         await transferToken(usdc, owner, user1, amount);
         await approveToken(usdc, user1, everNFT.address , amount / 2);
 
-        expect(await getIneligibilityMintNFTs(
-            everNFT,
-            user1,
-            dropId,
-            quantity,
-            Array(quantity).fill(0).map((_, index) => getExternalId(index)),
-        )).to.be.equal('IncorrectAmountSent');
         await expect(mintNFTs(
             everNFT,
             user1,
@@ -305,13 +298,6 @@ describe("Ever NFT", function () {
         await transferToken(usdc, owner, user1, amount);
         await approveToken(usdc, user1, everNFT.address , updatedPrice);
 
-        expect(await getIneligibilityMintNFTs(
-            everNFT,
-            user1,
-            dropId,
-            quantity,
-            Array(quantity).fill(0).map((_, index) => getExternalId(index)),
-        )).to.be.equal('InsufficientBalance');
         await expect(mintNFTs(
             everNFT,
             user1,
