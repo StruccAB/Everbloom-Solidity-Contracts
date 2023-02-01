@@ -132,3 +132,20 @@ export async function mintNFTs(
     )
 }
 
+export async function getIneligibilityMintNFTs(
+    everNFT: Contract,
+    buyer: SignerWithAddress,
+    dropId: number,
+    quantity: number,
+    externalIds: string[],
+    merkleProof: string[] = [NFT_MERKLE_ROOT],
+) {
+    return everNFT.connect(buyer).getIneligibilityReason(
+        buyer.address,
+        dropId,
+        quantity,
+        externalIds,
+        merkleProof,
+    )
+}
+

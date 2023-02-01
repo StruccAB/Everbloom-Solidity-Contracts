@@ -179,15 +179,6 @@ contract EverNFT is
         // Check if the drop sale is ended
         if (block.timestamp > drop.saleCloseTime)
             return 'SaleEnded';
-        if (drop.tokenInfo.price > 0) {
-            // Check that user has sufficient balance
-            if (IERC20(erc20tokenAddress).balanceOf(msg.sender) < drop.tokenInfo.price * _quantity)
-                return 'InsufficientBalance';
-
-            // Check that user has approved sufficient balance
-            if (IERC20(erc20tokenAddress).allowance(msg.sender, address(this)) < drop.tokenInfo.price * _quantity)
-                return 'IncorrectAmountSent';
-        }
 
         for (uint128 i = 0; i < _quantity; ++i) {
             if (externalIdToTokenId[_externalIds[i]] != 0)
