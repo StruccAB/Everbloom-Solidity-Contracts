@@ -96,7 +96,7 @@ contract EverDropManager is
     {
         __UUPSUpgradeable_init();
         __AccessControl_init();
-        _setupRole(DEFAULT_ADMIN_ROLE, _admin);
+        _grantRole(DEFAULT_ADMIN_ROLE, _admin);
         _grantRole(CREATOR_ROLE, _admin);
         _grantRole(SUB_ADMIN_ROLE, _admin);
         // register the IEverDropManager Interface
