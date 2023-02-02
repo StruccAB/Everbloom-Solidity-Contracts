@@ -76,6 +76,8 @@ contract EverNFT is
     {
         __UUPSUpgradeable_init();
         __ERC721_init(_name, _symbol);
+        __ERC721Enumerable_init();
+        __ERC721Pausable_init();
         __Ownable_init();
         if (!ERC165CheckerUpgradeable.supportsInterface(
             _dropManager,
