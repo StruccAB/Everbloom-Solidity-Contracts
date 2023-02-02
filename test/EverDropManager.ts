@@ -207,7 +207,7 @@ describe("Ever Drop Manager", function () {
 
         await expect(createDrop(everDropManager, everNFT, owner))
             .to.emit(everDropManager, "NewDrop")
-            .withArgs(0, getExternalId(), getExternalId(), everNFT.address);
+            .withArgs(0, getExternalId(), everNFT.address);
       });
 
       it("Should emit an event on updating drop supply", async function () {

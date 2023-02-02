@@ -33,7 +33,7 @@ contract EverNFT is
 {
     using CountersUpgradeable for CountersUpgradeable.Counter;
 
-    event NewPrintMinted(uint256 dropId, uint256 tokenId, string externalId, uint128 serialNumber);
+    event NewPrintMinted(uint256 indexed dropId, uint256 indexed tokenId, string externalId, uint128 serialNumber);
 
     // @dev Stores the counter for NFT id
     CountersUpgradeable.Counter private _tokenIds;
