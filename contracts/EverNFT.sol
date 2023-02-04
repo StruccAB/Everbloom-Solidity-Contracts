@@ -29,11 +29,10 @@ contract EverNFT is
     OwnableUpgradeable,
     ERC721PausableUpgradeable,
     ERC721EnumerableUpgradeable,
-    ERC165StorageUpgradeable
+    ERC165StorageUpgradeable,
+    IEverNFT
 {
     using CountersUpgradeable for CountersUpgradeable.Counter;
-
-    event NewPrintMinted(uint256 indexed dropId, uint256 indexed tokenId, string externalId, uint128 serialNumber);
 
     // @dev Stores the counter for NFT id
     CountersUpgradeable.Counter private _tokenIds;

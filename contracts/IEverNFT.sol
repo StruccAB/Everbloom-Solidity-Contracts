@@ -8,28 +8,7 @@ pragma solidity ^0.8.4;
  * Ever NFT is link to a Drop created in EverDropManager smart contract
  */
 interface IEverNFT {
-    /**
-     * @notice
-     *  pause the minting and transfer
-     *  Only the contract owner can perform this operation
-     */
-    function pause() external;
-
-    /**
-     * @notice
-     *  unpause the minting and transfer
-     *  Only the contract owner can perform this operation
-     */
-    function unpause() external;
-
-    /**
-     * @notice
-     *  Update the token Base URI
-     *  Only the contract owner can perform this operation
-     *
-     * @param _newBaseURI : new base URI
-     */
-    function setBaseURI(string calldata _newBaseURI) external;
+    event NewPrintMinted(uint256 indexed dropId, uint256 indexed tokenId, string externalId, uint128 serialNumber);
 
     /**
      * @notice
@@ -56,10 +35,7 @@ interface IEverNFT {
         uint128 _quantity,
         string[] calldata _externalIds,
         bytes32[] calldata _proof
-    )
-    external
-    view
-    returns (string memory);
+    ) external view returns (string memory);
 
     /**
      * @notice
@@ -78,4 +54,36 @@ interface IEverNFT {
         string[] calldata _externalIds,
         bytes32[] calldata _proof
     ) external payable;
+
+    /**
+     * @notice
+     *  pause the minting and transfer
+     *  Only the contract owner can perform this operation
+     */
+    function pause() external;
+
+    /**
+     * @notice
+     *  unpause the minting and transfer
+     *  Only the contract owner can perform this operation
+     */
+    function unpause() external;
+
+    /**
+     * @notice
+     *  Update the token Base URI
+     *  Only the contract owner can perform this operation
+     *
+     * @param _newBaseURI : new base URI
+     */
+    function setBaseURI(string calldata _newBaseURI) external;
+
+    /**
+     * @notice
+     *  Update the treasury address
+     *  Only the contract owner can perform this operation
+     *
+     * @param _newTreasury : new treasury address
+     */
+    function setTreasury(address _newTreasury) external;
 }

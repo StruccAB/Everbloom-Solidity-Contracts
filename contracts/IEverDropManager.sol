@@ -12,6 +12,12 @@ pragma solidity ^0.8.4;
  * Sub Admin have the permission to update some fields of the Drop i.e. right holder, sale info, supply and merkle root
  */
 interface IEverDropManager {
+    event NewDrop(uint256 indexed dropId, string externalId, address nftContractAddress);
+    event DropSaleInfoUpdated(uint256 indexed dropId, uint64 saleOpenTime, uint64 saleCloseTime);
+    event DropSupplyUpdated(uint256 indexed dropId, uint128 supply);
+    event DropRightHolderUpdated(uint256 indexed dropId, address owner);
+    event DropMerkleRootUpdated(uint256 indexed dropId, bytes32 merkleRoot);
+
     /**
      * @notice
      *  Drop Structure format
@@ -53,14 +59,6 @@ interface IEverDropManager {
     }
 
     // -------------------- User External Functions -------------------- //
-
-    /**
-     * @notice
-     *  Returns the drop `_dropId`
-     *
-     * @param _dropId : drop identifier
-     */
-    function drops(uint256 _dropId) external view returns (Drop memory);
 
     /**
      * @notice

@@ -25,54 +25,9 @@ contract EverDropManager is
     UUPSUpgradeable,
     AccessControlUpgradeable,
     ERC165StorageUpgradeable,
-    EverErrors
+    EverErrors,
+    IEverDropManager
 {
-    event NewDrop(uint256 indexed dropId, string externalId, address nftContractAddress);
-    event DropSaleInfoUpdated(uint256 indexed dropId, uint64 saleOpenTime, uint64 saleCloseTime);
-    event DropSupplyUpdated(uint256 indexed dropId, uint128 supply);
-    event DropRightHolderUpdated(uint256 indexed dropId, address owner);
-    event DropMerkleRootUpdated(uint256 indexed dropId, bytes32 merkleRoot);
-
-    /**
-     * @notice
-     *  Drop Structure format
-     *
-     * @param dropId : drop unique identifier
-     * @param sold : total number of sold tokens for this drop (accross all associated tokenId)
-     * @param saleStartTime : opening timestamp of the sale
-     * @param saleCloseTime : closing timestamp of the sale
-     * @param tokenInfo : Token Info struct defining the token information (see TokenInfo structure)
-     * @param externalId : id of the drop in Everbloom Platform
-     * @param owner : right holder address
-     * @param nft :  NFT contract address
-     * @param merkleRoot : merkle root of the drop
-     */
-    struct Drop {
-        uint256 dropId;
-        uint128 sold;
-        uint64 saleOpenTime;
-        uint64 saleCloseTime;
-        TokenInfo tokenInfo;
-        string externalId;
-        address owner;
-        address nft;
-        bytes32 merkleRoot;
-    }
-
-    /**
-     * @notice
-     *  TokenInfo Structure format
-     *
-     * @param price : initial price of 1 token
-     * @param supply : total number of tokens for this drop (across all associated tokenId)
-     * @param royaltySharePerToken : total percentage of royalty evenly distributed among tokens holders
-     */
-    struct TokenInfo {
-        uint256 price;
-        uint128 supply;
-        uint128 royaltySharePerToken;
-    }
-
     // @dev hash of Creator role
     bytes32 public constant CREATOR_ROLE = keccak256("CREATOR_ROLE");
     // @dev hash of Sub admin role
