@@ -5,8 +5,11 @@ import { StandardMerkleTree } from "@openzeppelin/merkle-tree";
 import {
   approveToken,
   BASE_URI, createDrop,
-  deployContracts, getIneligibilityMintNFTs, getExternalId, mintNFTs,
-  NFT_NAME, NFT_PRICE,
+  deployContracts,
+  getIneligibilityMintNFTs,
+  mintNFTs,
+  NFT_NAME,
+  NFT_PRICE,
   NFT_SYMBOL, transferToken,
 } from "./util";
 
@@ -88,7 +91,6 @@ describe("Ever NFT", function () {
             user1,
             dropId,
             quantity,
-            Array(quantity).fill(0).map((_, index) => getExternalId(index)),
         )).to.be.not.reverted;
         await expect((await everNFT.tokensOfOwner(user1.address)).length).to.equal(1);
         await expect(
@@ -96,11 +98,6 @@ describe("Ever NFT", function () {
                 Number((await everNFT.tokensOfOwner(user1.address))[0])
             )
         ).to.equal(dropId);
-        await expect(
-            await everNFT.externalIdToTokenId(
-                getExternalId(0)
-            )
-        ).to.equal(1);
         await expect(
             await everNFT.tokenURI(1)
         ).to.equal(BASE_URI + 1);
@@ -120,7 +117,6 @@ describe("Ever NFT", function () {
             user1,
             dropId,
             quantity,
-            Array(quantity).fill(0).map((_, index) => getExternalId(index)),
         )).to.be.not.reverted;
       });
 
@@ -141,7 +137,6 @@ describe("Ever NFT", function () {
             user1,
             dropId,
             quantity,
-            Array(quantity).fill(0).map((_, index) => getExternalId(index)),
         )).to.be.not.reverted;
 
         await expect((await everNFT.tokensOfOwner(user1.address)).length).to.equal(2);
@@ -176,7 +171,6 @@ describe("Ever NFT", function () {
             user1,
             dropId,
             quantity,
-            Array(quantity).fill(0).map((_, index) => getExternalId(index)),
             proof
         )).to.be.not.reverted;
       });
@@ -196,7 +190,6 @@ describe("Ever NFT", function () {
             user1,
             dropId,
             quantity,
-            Array(quantity).fill(0).map((_, index) => getExternalId(index)),
         )).to.changeTokenBalances(
             usdc,
             [owner, user1],
@@ -220,47 +213,7 @@ describe("Ever NFT", function () {
             user1,
             dropId,
             quantity,
-            Array(quantity).fill(0).map((_, index) => getExternalId(index)),
         )).to.be.revertedWith('Pausable: paused');
-      });
-
-      it("Should not mint an NFT when there is conflict in NFT external ids", async function () {
-        const { everDropManager, everNFT, owner, user1, everErrors } = await loadFixture(deployContracts);
-        await createDrop(everDropManager, everNFT, owner, { price: 0 });
-        const drop = await everDropManager.drops(0);
-        const dropId = Number(drop[0]);
-        let quantity = 2;
-        const amount = 0;
-
-        await expect(mintNFTs(
-            everNFT,
-            user1,
-            dropId,
-            quantity,
-            Array(quantity).fill(0).map((_) => getExternalId(1)),
-        )).to.be.revertedWithCustomError(everErrors, 'PrintConflict');
-        quantity = 1;
-        await expect(mintNFTs(
-            everNFT,
-            user1,
-            dropId,
-            quantity,
-            [getExternalId(1)],
-        )).to.be.not.reverted;
-        expect(await getIneligibilityMintNFTs(
-            everNFT,
-            user1,
-            dropId,
-            quantity,
-            [getExternalId(1)],
-        )).to.be.equal('PrintConflict');
-        await expect(mintNFTs(
-            everNFT,
-            user1,
-            dropId,
-            quantity,
-            [getExternalId(1)],
-        )).to.be.revertedWithCustomError(everErrors, 'PrintConflict');
       });
 
       it("Should not mint an NFT when amount is correct but allowance is insufficient", async function () {
@@ -281,7 +234,6 @@ describe("Ever NFT", function () {
             user1,
             dropId,
             quantity,
-            Array(quantity).fill(0).map((_, index) => getExternalId(index)),
         )).to.be.revertedWithCustomError(everErrors, 'IncorrectAmountSent');
       });
 
@@ -303,7 +255,6 @@ describe("Ever NFT", function () {
             user1,
             dropId,
             quantity,
-            Array(quantity).fill(0).map((_, index) => getExternalId(index)),
         )).to.be.revertedWithCustomError( everErrors, 'InsufficientBalance');
       });
 
@@ -324,14 +275,12 @@ describe("Ever NFT", function () {
             user1,
             dropId,
             quantity,
-            Array(quantity).fill(0).map((_, index) => getExternalId(index)),
         )).to.be.equal('SaleNotStarted');
         await expect(mintNFTs(
             everNFT,
             user1,
             dropId,
             quantity,
-            Array(quantity).fill(0).map((_, index) => getExternalId(index)),
         )).to.be.revertedWithCustomError(everErrors, 'SaleNotStarted');
       });
 
@@ -363,7 +312,6 @@ describe("Ever NFT", function () {
             user1,
             dropId,
             quantity,
-            Array(quantity).fill(0).map((_, index) => getExternalId(index)),
             proof
         )).to.be.equal('NotWhiteListed');
         await expect(mintNFTs(
@@ -371,7 +319,6 @@ describe("Ever NFT", function () {
             user1,
             dropId,
             quantity,
-            Array(quantity).fill(0).map((_, index) => getExternalId(index)),
             proof
         )).to.be.revertedWithCustomError(everErrors, 'NotWhiteListed');
       });
@@ -394,14 +341,12 @@ describe("Ever NFT", function () {
             user1,
             dropId,
             quantity,
-            Array(quantity).fill(0).map((_, index) => getExternalId(index)),
         )).to.be.equal('SaleEnded');
         await expect(mintNFTs(
             everNFT,
             user1,
             dropId,
             quantity,
-            Array(quantity).fill(0).map((_, index) => getExternalId(index)),
         )).to.be.revertedWithCustomError(everErrors, 'SaleEnded');
       });
 
@@ -422,7 +367,6 @@ describe("Ever NFT", function () {
             user1,
             dropId,
             quantity,
-            Array(quantity).fill(0).map((_, index) => getExternalId(index)),
         );
 
         expect(await getIneligibilityMintNFTs(
@@ -430,14 +374,12 @@ describe("Ever NFT", function () {
             user1,
             dropId,
             quantity,
-            Array(quantity).fill(0).map((_, index) => getExternalId(index)),
         )).to.be.equal('DropSoldOut');
         await expect(mintNFTs(
             everNFT,
             user1,
             dropId,
             quantity,
-            Array(quantity).fill(0).map((_, index) => getExternalId(index)),
         )).to.be.revertedWithCustomError(everErrors, 'DropSoldOut');
       });
 
@@ -458,55 +400,13 @@ describe("Ever NFT", function () {
             user1,
             dropId,
             quantity,
-            Array(quantity).fill(0).map((_, index) => getExternalId(index)),
         )).to.be.equal('NotEnoughTokensAvailable');
         await expect(mintNFTs(
             everNFT,
             user1,
             dropId,
             quantity,
-            Array(quantity).fill(0).map((_, index) => getExternalId(index)),
         )).to.be.revertedWithCustomError(everErrors, 'NotEnoughTokensAvailable');
-      });
-
-      it("Should not mint an NFT when quantity does not match externalIds length", async function () {
-        const { everDropManager, everNFT, everErrors, owner, user1, usdc } = await loadFixture(deployContracts);
-        await createDrop(everDropManager, everNFT, owner)
-        const drop = await everDropManager.drops(0);
-        const dropId = Number(drop[0]);
-        const quantity = 2;
-        const amount = NFT_PRICE * quantity;
-        await transferToken(usdc, owner, user1, amount);
-        await approveToken(usdc, user1, everNFT.address , amount);
-
-        expect(await getIneligibilityMintNFTs(
-            everNFT,
-            user1,
-            dropId,
-            quantity,
-            [getExternalId(1)],
-        )).to.be.equal('IncorrectExternalIds');
-        await expect(mintNFTs(
-            everNFT,
-            user1,
-            dropId,
-            quantity,
-            [getExternalId(1)],
-        )).to.be.revertedWithCustomError(everErrors, 'IncorrectExternalIds');
-        expect(await getIneligibilityMintNFTs(
-            everNFT,
-            user1,
-            dropId,
-            quantity - 1,
-            Array(quantity).fill(0).map((_, index) => getExternalId(index)),
-        )).to.be.equal('IncorrectExternalIds');
-        await expect(mintNFTs(
-            everNFT,
-            user1,
-            dropId,
-            quantity - 1,
-            Array(quantity).fill(0).map((_, index) => getExternalId(index)),
-        )).to.be.revertedWithCustomError(everErrors, 'IncorrectExternalIds');
       });
     });
 
@@ -526,7 +426,6 @@ describe("Ever NFT", function () {
             user1,
             dropId,
             1,
-            Array(quantity).fill(0).map((_, index) => getExternalId(index)),
         )).to.emit(everNFT, "Transfer")
             .withArgs(ethers.constants.AddressZero, user1.address, 1);
       });
@@ -540,15 +439,13 @@ describe("Ever NFT", function () {
         const quantity = 1;
         await transferToken(usdc, owner, user1, amount);
         await approveToken(usdc, user1, everNFT.address , amount);
-        const externalIds = Array(quantity).fill(0).map((_, index) => getExternalId(index));
 
         await expect(mintNFTs(
             everNFT,
             user1,
             dropId,
             quantity,
-            externalIds,
-        )).to.emit(everNFT, "NewPrintMinted").withArgs(dropId, 1, externalIds[0], 1);
+        )).to.emit(everNFT, "NewPrintMinted").withArgs(dropId, 1, 1);
       });
 
       it("Should emit multiple events on batch minting NFT", async function () {
@@ -560,19 +457,17 @@ describe("Ever NFT", function () {
         const amount = NFT_PRICE * quantity;
         await transferToken(usdc, owner, user1, amount);
         await approveToken(usdc, user1, everNFT.address , amount);
-        const externalIds = Array(quantity).fill(0).map((_, index) => getExternalId(index));
 
         await expect(mintNFTs(
             everNFT,
             user1,
             dropId,
             quantity,
-            externalIds,
         ))
             .to.emit(everNFT, "Transfer").withArgs(ethers.constants.AddressZero, user1.address, 1)
             .to.emit(everNFT, "Transfer").withArgs(ethers.constants.AddressZero, user1.address, 2)
-            .to.emit(everNFT, "NewPrintMinted").withArgs(dropId, 1, externalIds[0], 1)
-            .to.emit(everNFT, "NewPrintMinted").withArgs(dropId, 2, externalIds[1], 2);
+            .to.emit(everNFT, "NewPrintMinted").withArgs(dropId, 1, 1)
+            .to.emit(everNFT, "NewPrintMinted").withArgs(dropId, 2, 2);
       });
     });
   });

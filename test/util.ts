@@ -120,14 +120,12 @@ export async function mintNFTs(
     buyer: SignerWithAddress,
     dropId: number,
     quantity: number,
-    externalIds: string[],
     merkleProof: string[] = [NFT_MERKLE_ROOT],
 ) {
     return everNFT.connect(buyer).mint(
         buyer.address,
         dropId,
         quantity,
-        externalIds,
         merkleProof,
     )
 }
@@ -137,14 +135,12 @@ export async function getIneligibilityMintNFTs(
     buyer: SignerWithAddress,
     dropId: number,
     quantity: number,
-    externalIds: string[],
     merkleProof: string[] = [NFT_MERKLE_ROOT],
 ) {
     return everNFT.connect(buyer).getIneligibilityReason(
         buyer.address,
         dropId,
         quantity,
-        externalIds,
         merkleProof,
     )
 }

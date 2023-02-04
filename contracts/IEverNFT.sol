@@ -8,7 +8,7 @@ pragma solidity ^0.8.4;
  * Ever NFT is link to a Drop created in EverDropManager smart contract
  */
 interface IEverNFT {
-    event NewPrintMinted(uint256 indexed dropId, uint256 indexed tokenId, string externalId, uint128 serialNumber);
+    event NewPrintMinted(uint256 indexed dropId, uint256 indexed tokenId, uint128 serialNumber);
 
     /**
      * @notice
@@ -26,14 +26,12 @@ interface IEverNFT {
      * @param _to : address of the nft receiver
      * @param _dropId : drop identifier
      * @param _quantity : quantity to be minted
-     * @param _externalIds : ids of the print in Everbloom platform
      * @param _proof : Merkle proof of the owner
      */
     function getIneligibilityReason(
         address _to,
         uint256 _dropId,
         uint128 _quantity,
-        string[] calldata _externalIds,
         bytes32[] calldata _proof
     ) external view returns (string memory);
 
@@ -44,14 +42,12 @@ interface IEverNFT {
      * @param _to : address of the nft receiver
      * @param _dropId : drop identifier
      * @param _quantity : quantity to be minted
-     * @param _externalIds : ids of the print in Everbloom platform
      * @param _proof : Merkle proof of the owner
      */
     function mint(
         address _to,
         uint256 _dropId,
         uint128 _quantity,
-        string[] calldata _externalIds,
         bytes32[] calldata _proof
     ) external payable;
 

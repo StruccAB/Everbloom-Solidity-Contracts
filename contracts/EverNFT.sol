@@ -46,8 +46,6 @@ contract EverNFT is
     address public erc20tokenAddress;
     // @dev stores the Mapping (Token ID) => Drop ID
     mapping(uint256 => uint256) public tokenIdToDropId;
-    // @dev stores the Mapping (Everbloom ID) => Token ID
-    mapping(string => uint256) public externalIdToTokenId;
 
     // -------------------- Initializer Functions -------------------- //
 
@@ -139,14 +137,12 @@ contract EverNFT is
      * @param _to : address of the nft receiver
      * @param _dropId : drop identifier
      * @param _quantity : quantity to be minted
-     * @param _externalIds : ids of the print in Everbloom platform
      * @param _proof : Merkle proof of the owner
      */
     function getIneligibilityReason(
         address _to,
         uint256 _dropId,
         uint128 _quantity,
-        string[] calldata _externalIds,
         bytes32[] calldata _proof
     )
     external
@@ -160,9 +156,6 @@ contract EverNFT is
         // Check that there are enough tokens available for sale
         if (drop.sold + _quantity > drop.tokenInfo.supply)
             return 'NotEnoughTokensAvailable';
-        if (_quantity != _externalIds.length) {
-            return 'IncorrectExternalIds';
-        }
         // Check if the drop sale is started
         if (block.timestamp < drop.saleOpenTime) {
             if (drop.merkleRoot == 0x0)
@@ -181,11 +174,6 @@ contract EverNFT is
         if (block.timestamp > drop.saleCloseTime)
             return 'SaleEnded';
 
-        for (uint128 i = 0; i < _quantity; ++i) {
-            if (externalIdToTokenId[_externalIds[i]] != 0)
-                return 'PrintConflict';
-        }
-
         return '';
     }
 
@@ -196,14 +184,12 @@ contract EverNFT is
      * @param _to : address of the nft receiver
      * @param _dropId : drop identifier
      * @param _quantity : quantity to be minted
-     * @param _externalIds : ids of the print in Everbloom platform
      * @param _proof : Merkle proof of the owner
      */
     function mint(
         address _to,
         uint256 _dropId,
         uint128 _quantity,
-        string[] calldata _externalIds,
         bytes32[] calldata _proof
     )
     external
@@ -217,9 +203,6 @@ contract EverNFT is
         // Check that there are enough tokens available for sale
         if (drop.sold + _quantity > drop.tokenInfo.supply)
             revert NotEnoughTokensAvailable();
-        if (_quantity != _externalIds.length) {
-            revert IncorrectExternalIds();
-        }
         // Check if the drop sale is started
         if (block.timestamp < drop.saleOpenTime) {
             if (drop.merkleRoot == 0x0)
@@ -248,16 +231,13 @@ contract EverNFT is
         }
 
         for (uint128 i = 0; i < _quantity; ++i) {
-            if (externalIdToTokenId[_externalIds[i]] != 0)
-                revert PrintConflict(_externalIds[i]);
             _tokenIds.increment();
 
             uint256 newItemId = _tokenIds.current();
             tokenIdToDropId[newItemId] = drop.dropId;
             _safeMint(_to, newItemId);
-            externalIdToTokenId[_externalIds[i]] = newItemId;
 
-            emit NewPrintMinted(drop.dropId, newItemId, _externalIds[i], drop.sold + i + 1);
+            emit NewPrintMinted(drop.dropId, newItemId, drop.sold + i + 1);
         }
 
         IEverDropManager(dropManager).updateDropCounter(drop.dropId, _quantity);

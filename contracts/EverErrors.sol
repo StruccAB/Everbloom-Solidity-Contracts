@@ -35,11 +35,6 @@ contract EverErrors {
     );
 
     /**
-    @notice Error returned if the quantity does not match externalIds
-    **/
-    error IncorrectExternalIds();
-
-    /**
     @notice Error returned if the drop is sold-out
     **/
     error DropSoldOut();
@@ -73,11 +68,4 @@ contract EverErrors {
     @notice Error returned if user had insufficient balance
     **/
     error InsufficientBalance();
-
-    /**
-    @notice Error returned if the external id of the print is conflicting
-    **/
-    error PrintConflict(
-        string externalId
-    );
 }
