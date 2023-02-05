@@ -12,15 +12,6 @@ interface IEverNFT {
 
     /**
      * @notice
-     *  Return an array containing the token IDs owned by the given address
-     *
-     * @param _owner : owner address
-     * @return result : array containing all the token IDs owned by `_owner`
-     */
-    function tokensOfOwner(address _owner) external view returns (uint256[] memory);
-
-    /**
-     * @notice
      *  Return the ineligibility reason for not minting NFT
      *
      * @param _to : address of the nft receiver

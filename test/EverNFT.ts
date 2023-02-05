@@ -13,7 +13,6 @@ import {
   NFT_SYMBOL, transferToken,
 } from "./util";
 
-
 describe("Ever NFT", function () {
   describe("Deployment", function () {
     it("Should set init states", async function () {
@@ -92,10 +91,10 @@ describe("Ever NFT", function () {
             dropId,
             quantity,
         )).to.be.not.reverted;
-        await expect((await everNFT.tokensOfOwner(user1.address)).length).to.equal(1);
+        await expect((await everNFT.balanceOf(user1.address))).to.equal(1);
         await expect(
             await everNFT.tokenIdToDropId(
-                Number((await everNFT.tokensOfOwner(user1.address))[0])
+                Number((await everNFT.tokenOfOwnerByIndex(user1.address, 0)))
             )
         ).to.equal(dropId);
         await expect(
@@ -139,7 +138,7 @@ describe("Ever NFT", function () {
             quantity,
         )).to.be.not.reverted;
 
-        await expect((await everNFT.tokensOfOwner(user1.address)).length).to.equal(2);
+        await expect((await everNFT.balanceOf(user1.address))).to.equal(2);
         await expect((await everDropManager.drops(0))[1]).to.equal(2);
       });
 

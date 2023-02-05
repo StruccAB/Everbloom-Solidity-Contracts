@@ -107,31 +107,6 @@ contract EverNFT is
 
     /**
      * @notice
-     *  Return an array containing the token IDs owned by the given address
-     *
-     * @param _owner : owner address
-     * @return result : array containing all the token IDs owned by `_owner`
-     */
-    function tokensOfOwner(address _owner)
-    external
-    view
-    returns (uint256[] memory)
-    {
-        uint256 tokenCount = balanceOf(_owner);
-        // If _owner doesnt own any tokens, return an empty array
-        if (tokenCount == 0) {
-            return new uint256[](0);
-        } else {
-            uint256[] memory result = new uint256[](tokenCount);
-            for (uint256 index = 0; index < tokenCount; ++index) {
-                result[index] = tokenOfOwnerByIndex(_owner, index);
-            }
-            return result;
-        }
-    }
-
-    /**
-     * @notice
      *  Return the ineligibility reason for not minting NFT
      *
      * @param _to : address of the nft receiver
