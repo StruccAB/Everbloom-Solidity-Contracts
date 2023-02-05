@@ -52,6 +52,8 @@ contract EverDropManager is
         __UUPSUpgradeable_init();
         __AccessControl_init();
         __ERC165Storage_init();
+        _setRoleAdmin(SUB_ADMIN_ROLE, DEFAULT_ADMIN_ROLE);
+        _setRoleAdmin(CREATOR_ROLE, SUB_ADMIN_ROLE);
         _grantRole(DEFAULT_ADMIN_ROLE, _admin);
         _grantRole(CREATOR_ROLE, _admin);
         _grantRole(SUB_ADMIN_ROLE, _admin);
@@ -183,35 +185,6 @@ contract EverDropManager is
 
     /**
      * @notice
-     *  Grant Creator role to an address
-     *  Only the contract SUB_ADMIN_ROLE can perform this operation
-     *
-     * @param _creator : address of the creator
-     */
-    function addCreator(address _creator)
-    external
-    onlyRole(SUB_ADMIN_ROLE)
-    {
-        if (_creator == address(0)) revert ZeroAddress();
-        _grantRole(CREATOR_ROLE, _creator);
-    }
-
-    /**
-     * @notice
-     *  Revoke Creator role for an address
-     *  Only the contract SUB_ADMIN_ROLE can perform this operation
-     *
-     * @param _creator : address of the creator
-     */
-    function removeCreator(address _creator)
-    external
-    onlyRole(SUB_ADMIN_ROLE)
-    {
-        _revokeRole(CREATOR_ROLE, _creator);
-    }
-
-    /**
-     * @notice
      *  Update the Drop `_dropId` right holder information
      *  Only the contract SUB_ADMIN_ROLE can perform this operation
      *
@@ -301,34 +274,4 @@ contract EverDropManager is
     override
     onlyRole(DEFAULT_ADMIN_ROLE)
     {}
-
-    /**
-     * @notice
-     *  Grant Sub Admin role for an address
-     *  Only the contract owner can perform this operation
-     *
-     * @param _subAdmin : address of the Sub Admin
-     */
-    function addSubAdmin(address _subAdmin)
-    external
-    onlyRole(DEFAULT_ADMIN_ROLE)
-    {
-        if (_subAdmin == address(0))
-            revert ZeroAddress();
-        _grantRole(SUB_ADMIN_ROLE, _subAdmin);
-    }
-
-    /**
-     * @notice
-     *  Revoke Sub Admin role for an address
-     *  Only the contract owner can perform this operation
-     *
-     * @param _subAdmin : address of the Sub Admin
-     */
-    function removeSubAdmin(address _subAdmin)
-    external
-    onlyRole(DEFAULT_ADMIN_ROLE)
-    {
-        _revokeRole(SUB_ADMIN_ROLE, _subAdmin);
-    }
 }

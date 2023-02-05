@@ -118,24 +118,6 @@ interface IEverDropManager {
 
     /**
      * @notice
-     *  Grant Creator role to an address
-     *  Only the contract SUB_ADMIN_ROLE can perform this operation
-     *
-     * @param _creator : address of the creator
-     */
-    function addCreator(address _creator) external;
-
-    /**
-     * @notice
-     *  Revoke Creator role for an address
-     *  Only the contract SUB_ADMIN_ROLE can perform this operation
-     *
-     * @param _creator : address of the creator
-     */
-    function removeCreator(address _creator) external;
-
-    /**
-     * @notice
      *  Update the Drop `_dropId` right holder information
      *  Only the contract SUB_ADMIN_ROLE can perform this operation
      *
@@ -174,24 +156,4 @@ interface IEverDropManager {
      * @param _merkle : merkle root of the drop
      */
     function setMerkleRoot(uint256 _dropId, bytes32 _merkle) external;
-
-    // -------------------- Admin-Only Functions -------------------- //
-
-    /**
-     * @notice
-     *  Grant Sub Admin role for an address
-     *  Only the contract owner can perform this operation
-     *
-     * @param _subAdmin : address of the Sub Admin
-     */
-    function addSubAdmin(address _subAdmin) external;
-
-    /**
-     * @notice
-     *  Revoke Sub Admin role for an address
-     *  Only the contract owner can perform this operation
-     *
-     * @param _subAdmin : address of the Sub Admin
-     */
-    function removeSubAdmin(address _subAdmin) external;
 }

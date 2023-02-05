@@ -10,6 +10,7 @@ import {
   SUB_ADMIN_ROLE
 } from "./util";
 import {StandardMerkleTree} from "@openzeppelin/merkle-tree";
+import {EverDropManager} from "../typechain-types";
 
 
 describe("Ever Drop Manager", function () {
@@ -26,8 +27,8 @@ describe("Ever Drop Manager", function () {
     describe("Validations", function () {
       it("Should create a drop when called by creator", async function () {
         const { everDropManager, everNFT, subAdmin1, creator1 } = await loadFixture(deployContracts);
-        await everDropManager.addSubAdmin(subAdmin1.address);
-        await everDropManager.connect(subAdmin1).addCreator(creator1.address);
+        await everDropManager.grantRole(everDropManager.SUB_ADMIN_ROLE(), subAdmin1.address)
+        await everDropManager.connect(subAdmin1).grantRole(everDropManager.CREATOR_ROLE(), creator1.address);
 
         await expect(createDrop(everDropManager, everNFT, creator1)).to.be.not.reverted;
         await expect(await everDropManager.drops(0)).to.be.not.null;
@@ -37,8 +38,8 @@ describe("Ever Drop Manager", function () {
 
       it("Should not create a drop when nft address is invalid", async function () {
         const { everDropManager, everNFT, subAdmin1, creator1 } = await loadFixture(deployContracts);
-        await everDropManager.addSubAdmin(subAdmin1.address);
-        await everDropManager.connect(subAdmin1).addCreator(creator1.address);
+        await everDropManager.grantRole(everDropManager.SUB_ADMIN_ROLE(), subAdmin1.address)
+        await everDropManager.connect(subAdmin1).grantRole(everDropManager.CREATOR_ROLE(), creator1.address);
 
         await expect(createDrop(everDropManager, everNFT, creator1, { nftAddress: creator1.address }))
             .to.be.reverted;
@@ -46,8 +47,8 @@ describe("Ever Drop Manager", function () {
 
       it("Should not create a drop when there is a conflict in external id", async function () {
         const { everDropManager, everNFT, subAdmin1, creator1, everErrors } = await loadFixture(deployContracts);
-        await everDropManager.addSubAdmin(subAdmin1.address);
-        await everDropManager.connect(subAdmin1).addCreator(creator1.address);
+        await everDropManager.grantRole(everDropManager.SUB_ADMIN_ROLE(), subAdmin1.address);
+        await everDropManager.connect(subAdmin1).grantRole(everDropManager.CREATOR_ROLE(), creator1.address);
         await createDrop(everDropManager, everNFT, creator1, { externalId: getExternalId(1) })
         await createDrop(everDropManager, everNFT, creator1, { externalId: getExternalId(2) })
 
@@ -57,8 +58,8 @@ describe("Ever Drop Manager", function () {
 
       it("Should not create a drop when supply is zero", async function () {
         const { everDropManager, everNFT, subAdmin1, creator1, everErrors } = await loadFixture(deployContracts);
-        await everDropManager.addSubAdmin(subAdmin1.address);
-        await everDropManager.connect(subAdmin1).addCreator(creator1.address);
+        await everDropManager.grantRole(everDropManager.SUB_ADMIN_ROLE(), subAdmin1.address);
+        await everDropManager.connect(subAdmin1).grantRole(everDropManager.CREATOR_ROLE(), creator1.address);
 
         await expect(createDrop(everDropManager, everNFT, creator1, { supply: 0 }))
             .to.be.revertedWithCustomError(everErrors, 'InvalidSupply');
@@ -73,8 +74,8 @@ describe("Ever Drop Manager", function () {
 
       it("Should update a drop when called by sub admin", async function () {
         const { everDropManager, everNFT, subAdmin1, creator1 } = await loadFixture(deployContracts);
-        await everDropManager.addSubAdmin(subAdmin1.address);
-        await everDropManager.connect(subAdmin1).addCreator(creator1.address);
+        await everDropManager.grantRole(everDropManager.SUB_ADMIN_ROLE(), subAdmin1.address);
+        await everDropManager.connect(subAdmin1).grantRole(everDropManager.CREATOR_ROLE(),creator1.address);
         await createDrop(everDropManager, everNFT, creator1);
 
         const merkleTree = StandardMerkleTree.of(
@@ -116,8 +117,8 @@ describe("Ever Drop Manager", function () {
 
       it("Should update a drop owner when called by sub admin", async function () {
         const { everDropManager, everNFT, subAdmin1, creator1 } = await loadFixture(deployContracts);
-        await everDropManager.addSubAdmin(subAdmin1.address);
-        await everDropManager.connect(subAdmin1).addCreator(creator1.address);
+        await everDropManager.grantRole(everDropManager.SUB_ADMIN_ROLE(), subAdmin1.address);
+        await everDropManager.connect(subAdmin1).grantRole(everDropManager.CREATOR_ROLE(), creator1.address);
         await createDrop(everDropManager, everNFT, creator1);
 
         const drop = await everDropManager.drops(0);
@@ -125,7 +126,7 @@ describe("Ever Drop Manager", function () {
 
         await expect(everDropManager.connect(subAdmin1).setRightHolderInfo(dropId, subAdmin1.address))
             .to.be.revertedWith('New owner is not a creator');
-        await everDropManager.connect(subAdmin1).addCreator(subAdmin1.address);
+        await everDropManager.connect(subAdmin1).grantRole(everDropManager.CREATOR_ROLE(), subAdmin1.address);
         await expect(everDropManager.connect(subAdmin1).setRightHolderInfo(dropId, subAdmin1.address))
             .to.be.not.reverted;
 
@@ -136,8 +137,8 @@ describe("Ever Drop Manager", function () {
 
       it("Should not update drop when called by creator", async function () {
         const { everDropManager, everNFT, subAdmin1, creator1 } = await loadFixture(deployContracts);
-        await everDropManager.addSubAdmin(subAdmin1.address);
-        await everDropManager.connect(subAdmin1).addCreator(creator1.address);
+        await everDropManager.grantRole(everDropManager.SUB_ADMIN_ROLE(), subAdmin1.address);
+        await everDropManager.connect(subAdmin1).grantRole(everDropManager.CREATOR_ROLE(), creator1.address);
         await createDrop(everDropManager, everNFT, creator1);
         const merkleTree = StandardMerkleTree.of(
             [[subAdmin1.address], [creator1.address]],
@@ -169,8 +170,8 @@ describe("Ever Drop Manager", function () {
 
       it("Should not update drop when called by user", async function () {
         const { everDropManager, everNFT, subAdmin1, user1 } = await loadFixture(deployContracts);
-        await everDropManager.addSubAdmin(subAdmin1.address);
-        await everDropManager.connect(subAdmin1).addCreator(subAdmin1.address);
+        await everDropManager.grantRole(everDropManager.SUB_ADMIN_ROLE(), subAdmin1.address);
+        await everDropManager.connect(subAdmin1).grantRole(everDropManager.CREATOR_ROLE(), subAdmin1.address);
         await createDrop(everDropManager, everNFT, subAdmin1)
         const merkleTree = StandardMerkleTree.of(
             [[subAdmin1.address], [user1.address]],
@@ -239,7 +240,7 @@ describe("Ever Drop Manager", function () {
 
       it("Should emit an event on updating drop right holder", async function () {
         const { everDropManager, everNFT, creator1, owner } = await loadFixture(deployContracts);
-        await everDropManager.addCreator(creator1.address);
+        await everDropManager.grantRole(everDropManager.CREATOR_ROLE(), creator1.address);
 
         await createDrop(everDropManager, everNFT, owner)
         const drop = await everDropManager.drops(0);
@@ -252,7 +253,7 @@ describe("Ever Drop Manager", function () {
 
       it("Should emit an event on updating drop merkle", async function () {
         const { everDropManager, everNFT, creator1, owner } = await loadFixture(deployContracts);
-        await everDropManager.addCreator(creator1.address);
+        await everDropManager.grantRole(everDropManager.CREATOR_ROLE(), creator1.address);
 
         await createDrop(everDropManager, everNFT, owner)
         const drop = await everDropManager.drops(0);
@@ -273,7 +274,7 @@ describe("Ever Drop Manager", function () {
       const { everDropManager, everNFT, subAdmin1, creator1 } = await loadFixture(deployContracts);
       const { everDropManager2 } = await deployContractV2(everDropManager.address);
       await everDropManager2.addSubAdmin(subAdmin1.address);
-      await everDropManager2.connect(subAdmin1).addCreator(creator1.address);
+      await everDropManager2.connect(subAdmin1).grantRole(everDropManager.CREATOR_ROLE(), creator1.address);
 
       await expect(everDropManager.address).to.equal(everDropManager2.address);
       await expect(createDrop(everDropManager2, everNFT, creator1)).to.be.not.reverted;

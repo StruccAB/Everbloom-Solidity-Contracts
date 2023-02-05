@@ -45,8 +45,8 @@ describe("Ever NFT", function () {
       it("Should not pause the contract when called by other roles", async function () {
         const { everDropManager, everNFT, subAdmin1, creator1, user1 } = await loadFixture(deployContracts);
         await Promise.all([
-            everDropManager.addCreator(creator1.address),
-          everDropManager.addSubAdmin(subAdmin1.address),
+          everDropManager.grantRole(everDropManager.CREATOR_ROLE(), creator1.address),
+          everDropManager.grantRole(everDropManager.SUB_ADMIN_ROLE(), subAdmin1.address),
         ])
 
         await expect(everNFT.connect(subAdmin1).pause()).to.be.reverted;
@@ -59,8 +59,8 @@ describe("Ever NFT", function () {
         const { everDropManager, everNFT, subAdmin1, creator1, user1 } = await loadFixture(deployContracts);
         await Promise.all([
             everNFT.pause(),
-          everDropManager.addCreator(creator1.address),
-          everDropManager.addSubAdmin(subAdmin1.address),
+          everDropManager.grantRole(everDropManager.CREATOR_ROLE(), creator1.address),
+          everDropManager.grantRole(everDropManager.SUB_ADMIN_ROLE(), subAdmin1.address),
         ])
 
         await expect(everNFT.connect(subAdmin1).unpause()).to.be.reverted;
