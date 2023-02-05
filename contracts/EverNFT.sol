@@ -126,6 +126,9 @@ contract EverNFT is
     {
         IEverDropManager.Drop memory drop = IEverDropManager(dropManager).getDrop(_dropId);
 
+        // Check if the minting of NFT is paused
+        if (paused())
+            return 'MintingPaused';
         // Check if the drop is not sold-out
         if (drop.sold == drop.tokenInfo.supply) return 'DropSoldOut';
         // Check that there are enough tokens available for sale

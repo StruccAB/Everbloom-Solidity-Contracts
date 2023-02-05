@@ -207,6 +207,12 @@ describe("Ever NFT", function () {
         await transferToken(usdc, owner, user1, amount);
         await approveToken(usdc, user1, everNFT.address , amount);
 
+        expect(await getIneligibilityMintNFTs(
+            everNFT,
+            user1,
+            dropId,
+            quantity,
+        )).to.be.equal('MintingPaused');
         await expect(mintNFTs(
             everNFT,
             user1,
