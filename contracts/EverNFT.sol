@@ -202,9 +202,6 @@ contract EverNFT is
 
         // Check if the drop is not sold-out
         if (drop.sold == drop.tokenInfo.supply) revert DropSoldOut();
-        // Check that there are enough tokens available for sale
-        if (drop.sold + _quantity > drop.tokenInfo.supply)
-            revert NotEnoughTokensAvailable();
         // Check if the drop sale is started
         if (block.timestamp < drop.saleOpenTime) {
             if (drop.merkleRoot == 0x0)
@@ -237,6 +234,9 @@ contract EverNFT is
                 mintedPerDropPrivateSale[drop.dropId][_to] += _quantity;
             }
         }
+        // Check that there are enough tokens available for sale
+        if (drop.sold + _quantity > drop.tokenInfo.supply)
+            revert NotEnoughTokensAvailable();
         // Check if the drop sale is ended
         if (block.timestamp > drop.saleCloseTime)
             revert SaleEnded();
