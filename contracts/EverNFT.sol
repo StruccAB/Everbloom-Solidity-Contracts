@@ -203,6 +203,8 @@ contract EverNFT is
                 revert IncorrectAmountSent();
         }
 
+        IEverDropManager(dropManager).updateDropCounter(drop.dropId, _quantity);
+
         for (uint128 i = 0; i < _quantity; ++i) {
             _tokenIds.increment();
 
@@ -212,8 +214,6 @@ contract EverNFT is
 
             emit NewPrintMinted(drop.dropId, newItemId, drop.sold + i + 1);
         }
-
-        IEverDropManager(dropManager).updateDropCounter(drop.dropId, _quantity);
 
         // transfer Fee to the treasury address
         if (drop.tokenInfo.price > 0) {
