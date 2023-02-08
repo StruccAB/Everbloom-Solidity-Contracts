@@ -37,6 +37,13 @@ contract EverDropManager is
     // @dev stores the Mapping (Everbloom ID) => Drop ID
     mapping (string => uint256) public externalIdToDropId;
 
+    // -------------------- constructor -------------------- //
+
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
     // -------------------- Initializer Functions -------------------- //
 
     /**

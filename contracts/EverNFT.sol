@@ -45,6 +45,13 @@ contract EverNFT is
     // @dev stores the Mapping (Token ID) => Drop ID
     mapping(uint256 => uint256) public tokenIdToDropId;
 
+    // -------------------- constructor -------------------- //
+
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
     // -------------------- Initializer Functions -------------------- //
 
     /**
