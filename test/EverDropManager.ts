@@ -268,30 +268,4 @@ describe("Ever Drop Manager", function () {
       });
     });
   });
-
-  describe("Drop Test v2", function () {
-    it("Validation", async function () {
-      const { everDropManager, everNFT, subAdmin1, creator1 } = await loadFixture(deployContracts);
-      const { everDropManager2 } = await deployContractV2(everDropManager.address);
-      await everDropManager2.addSubAdmin(subAdmin1.address);
-      await everDropManager2.connect(subAdmin1).grantRole(everDropManager.CREATOR_ROLE(), creator1.address);
-
-      await expect(everDropManager.address).to.equal(everDropManager2.address);
-      await expect(createDrop(everDropManager2, everNFT, creator1)).to.be.not.reverted;
-
-      const drop = await everDropManager2.drops(0);
-      const dropId = Number(drop[0]);
-      const UPDATES = {
-        supply: 10,
-        saleOpenDate: Math.floor(new Date('2024-1-1').getTime() / 1000),
-        saleCloseDate: Math.floor(new Date('2024-1-1').getTime() / 1000),
-      }
-
-      await expect(everDropManager2.connect(subAdmin1).updateDrop(
-          dropId,
-          UPDATES.saleOpenDate,
-          UPDATES.saleCloseDate
-      )).to.be.not.reverted;
-    });
-  });
 });

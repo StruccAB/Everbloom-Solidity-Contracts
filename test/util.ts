@@ -73,20 +73,6 @@ export const approveToken = (
     return usdc.connect(from).approve(to, amount)
 }
 
-export const deployContractV2 = (everDropManagerAddress: string) => {
-    async function deploy() {
-        const EverDropManager2 = await ethers.getContractFactory("EverDropManager2");
-        const everDropManager2 = await upgrades.upgradeProxy(everDropManagerAddress, EverDropManager2);
-
-        return {
-            everDropManager2,
-        }
-    }
-
-    return loadFixture(deploy);
-}
-
-
 export async function createDrop(
     everDropManager: Contract,
     everNFT: Contract,
