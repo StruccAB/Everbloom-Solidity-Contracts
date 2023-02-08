@@ -60,14 +60,14 @@ contract EverNFT is
      *
      * @param _dropManager : address of the drop manager contract
      * @param _treasury : address of the Ever fund collector Multi-sig wallet
-     * @param _baseURI : base uri of the tokens
+     * @param _baseTokenURI : base uri of the tokens
      * @param _name : name of the NFT contract
      * @param _symbol : symbol of the NFT contract
      **/
     function initialize(
         address _dropManager,
         address _treasury,
-        string memory _baseURI,
+        string memory _baseTokenURI,
         string memory _name,
         string memory _symbol
     )
@@ -84,7 +84,7 @@ contract EverNFT is
             type(IEverDropManager).interfaceId
         )) revert InvalidInterface();
 
-        baseTokenURI = _baseURI;
+        baseTokenURI = _baseTokenURI;
         dropManager = _dropManager;
         treasury = _treasury;
         // register the IEverNFT Interface
