@@ -149,8 +149,7 @@ contract EverDropManager is
      * @param _supply : total number of NFT for this drop (accross all associated tokenId)
      * @param _royaltySharePerToken : total percentage of royalty evenly distributed among NFT holders
      * @param _externalId : id of the print in legacy app
-     * @param _saleOpenTime : opening timestamp of the sale
-     * @param _saleCloseTime : closing timestamp of the sale
+     * @param _saleInfo : array containing [_saleOpenTime, _saleCloseTime, _privateSaleOpenTime, _privateSaleMaxMint]
      * @param _merkle : merkle root of the drop
      */
     function create(
@@ -162,8 +161,7 @@ contract EverDropManager is
         uint128 _supply,
         uint128 _royaltySharePerToken,
         string memory _externalId,
-        uint64 _saleOpenTime,
-        uint64 _saleCloseTime,
+        uint64[4] calldata _saleInfo,
         bytes32 _merkle
     )
     external
@@ -185,8 +183,10 @@ contract EverDropManager is
         drops.push(Drop(
             dropId,
             0,
-            _saleOpenTime,
-            _saleCloseTime,
+            _saleInfo[0],
+            _saleInfo[1],
+            _saleInfo[2],
+            _saleInfo[3],
             TokenInfo(
                 _price,
                 _erc20tokenAddress,
@@ -255,19 +255,31 @@ contract EverDropManager is
      * @param _dropId :  drop identifier of the drop to be updated
      * @param _saleOpenTime : opening timestamp of the sale
      * @param _saleCloseTime : closing timestamp of the sale
+     * @param _privateSaleOpenTime : opening timestamp of the private sale
+     * @param _privateSaleMaxMint : max mintable NFT under an address during a private sale. 0 means no limit
      */
     function setSalesInfo(
         uint256 _dropId,
         uint64 _saleOpenTime,
-        uint64 _saleCloseTime
+        uint64 _saleCloseTime,
+        uint64 _privateSaleOpenTime,
+        uint64 _privateSaleMaxMint
     )
     external
     onlyRole(SUB_ADMIN_ROLE)
     {
         drops[_dropId].saleOpenTime = _saleOpenTime;
         drops[_dropId].saleCloseTime = _saleCloseTime;
+        drops[_dropId].privateSaleOpenTime = _privateSaleOpenTime;
+        drops[_dropId].privateSaleMaxMint = _privateSaleMaxMint;
 
-        emit DropSaleInfoUpdated(_dropId, _saleOpenTime, _saleCloseTime);
+        emit DropSaleInfoUpdated(
+            _dropId,
+            _saleOpenTime,
+            _saleCloseTime,
+            _privateSaleOpenTime,
+            _privateSaleMaxMint
+        );
     }
 
     /**

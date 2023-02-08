@@ -13,7 +13,13 @@ pragma solidity ^0.8.4;
  */
 interface IEverDropManager {
     event NewDrop(uint256 indexed dropId, string externalId, address nftContractAddress);
-    event DropSaleInfoUpdated(uint256 indexed dropId, uint64 saleOpenTime, uint64 saleCloseTime);
+    event DropSaleInfoUpdated(
+        uint256 indexed dropId,
+        uint64 saleOpenTime,
+        uint64 saleCloseTime,
+        uint64 privateSaleOpenTime,
+        uint64 privateSaleMaxMint
+    );
     event DropSupplyUpdated(uint256 indexed dropId, uint128 supply);
     event DropRightHolderUpdated(uint256 indexed dropId, address owner);
     event DropMerkleRootUpdated(uint256 indexed dropId, bytes32 merkleRoot);
@@ -26,6 +32,8 @@ interface IEverDropManager {
      * @param sold : total number of sold tokens for this drop (accross all associated tokenId)
      * @param saleStartTime : opening timestamp of the sale
      * @param saleCloseTime : closing timestamp of the sale
+     * @param privateSaleOpenTime : opening timestamp of the private sale
+     * @param privateSaleMaxMint : max mintable NFT under an address during a private sale. 0 means no limit
      * @param tokenInfo : Token Info struct defining the token information (see TokenInfo structure)
      * @param externalId : id of the drop in Everbloom Platform
      * @param owner : right holder address
@@ -37,6 +45,8 @@ interface IEverDropManager {
         uint128 sold;
         uint64 saleOpenTime;
         uint64 saleCloseTime;
+        uint64 privateSaleOpenTime;
+        uint64 privateSaleMaxMint;
         TokenInfo tokenInfo;
         string externalId;
         address owner;
@@ -104,8 +114,7 @@ interface IEverDropManager {
      * @param _supply : total number of NFT for this drop (accross all associated tokenId)
      * @param _royaltySharePerToken : total percentage of royalty evenly distributed among NFT holders
      * @param _externalId : id of the print in legacy app
-     * @param _saleOpenTime : opening timestamp of the sale
-     * @param _saleCloseTime : closing timestamp of the sale
+     * @param _saleInfo : array containing [_saleOpenTime, _saleCloseTime, _privateSaleOpenTime, _privateSaleMaxMint]
      * @param _merkle : merkle root of the drop
      */
     function create(
@@ -117,8 +126,7 @@ interface IEverDropManager {
         uint128 _supply,
         uint128 _royaltySharePerToken,
         string memory _externalId,
-        uint64 _saleOpenTime,
-        uint64 _saleCloseTime,
+        uint64[4] calldata _saleInfo,
         bytes32 _merkle
     ) external;
 
@@ -152,8 +160,16 @@ interface IEverDropManager {
      * @param _dropId :  drop identifier of the drop to be updated
      * @param _saleOpenTime : opening timestamp of the sale
      * @param _saleCloseTime : closing timestamp of the sale
+     * @param _privateSaleOpenTime : opening timestamp of the private sale
+     * @param _privateSaleMaxMint : max mintable NFT under an address during a private sale
      */
-    function setSalesInfo(uint256 _dropId, uint64 _saleOpenTime, uint64 _saleCloseTime) external;
+    function setSalesInfo(
+        uint256 _dropId,
+        uint64 _saleOpenTime,
+        uint64 _saleCloseTime,
+        uint64 _privateSaleOpenTime,
+        uint64 _privateSaleMaxMint
+    ) external;
 
     /**
      * @notice

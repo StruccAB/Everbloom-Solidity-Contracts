@@ -46,6 +46,9 @@ contract EverNFT is
     address public treasury;
     // @dev stores the Mapping (Token ID) => Drop ID
     mapping(uint256 => uint256) public tokenIdToDropId;
+    // @dev stores the amounts of tokens minted per address during private sale
+    mapping(uint256 => mapping(address => uint128))
+    public mintedPerDropPrivateSale;
 
     // -------------------- constructor -------------------- //
 
@@ -142,6 +145,9 @@ contract EverNFT is
         if (block.timestamp < drop.saleOpenTime) {
             if (drop.merkleRoot == 0x0)
                 return 'SaleNotStarted';
+            // Check if the drop sale private is started
+            if (block.timestamp < drop.privateSaleOpenTime)
+                return 'PrivateSaleNotStarted';
 
             bool isWhitelisted = MerkleProof.verify(
                 _proof,
@@ -151,6 +157,14 @@ contract EverNFT is
 
             if (!isWhitelisted)
                 return 'NotWhiteListed';
+
+            if (drop.privateSaleMaxMint != 0) {
+                if (
+                    mintedPerDropPrivateSale[drop.dropId][_to] + _quantity >
+                    drop.privateSaleMaxMint
+                )
+                    return 'MaxMintPerAddress';
+            }
         }
         // Check if the drop sale is ended
         if (block.timestamp > drop.saleCloseTime)
@@ -189,6 +203,9 @@ contract EverNFT is
         if (block.timestamp < drop.saleOpenTime) {
             if (drop.merkleRoot == 0x0)
                 revert SaleNotStarted();
+            // Check if the drop sale private is started
+            if (block.timestamp < drop.privateSaleOpenTime)
+                revert PrivateSaleNotStarted();
 
             bool isWhitelisted = MerkleProof.verify(
                 _proof,
@@ -198,6 +215,17 @@ contract EverNFT is
 
             if (!isWhitelisted)
                 revert NotWhiteListed();
+
+            // check if there is max limit for mint in private sale
+            if (drop.privateSaleMaxMint != 0) {
+                if (
+                    mintedPerDropPrivateSale[drop.dropId][_to] + _quantity >
+                    drop.privateSaleMaxMint
+                )
+                    revert MaxMintPerAddress();
+
+                mintedPerDropPrivateSale[drop.dropId][_to] += _quantity;
+            }
         }
         // Check if the drop sale is ended
         if (block.timestamp > drop.saleCloseTime)

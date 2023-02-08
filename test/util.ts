@@ -18,6 +18,8 @@ export const NFT_SUPPLY = 100;
 export const NFT_ROYALTY_PER_SHARE = 1;
 export const NFT_SALE_OPEN_TIME = Math.floor(Date.now() / 1000);
 export const NFT_SALE_CLOSE_TIME = Math.floor(new Date('2099-1-1').getTime() / 1000);
+export const NFT_PRIVATE_SALE_OPEN_TIME = Math.floor(new Date().getTime() / 1000);
+export const NFT_PRIVATE_MAX_MINT = 1;
 export const NFT_MERKLE_ROOT = ethers.constants.HashZero;
 
 export const getExternalId = (number = 1) => `EXTERNAL_ID_${number}`;
@@ -94,6 +96,8 @@ export async function createDrop(
         externalId: string,
         saleOpenTime: number;
         saleCloseTime: number;
+        privateSaleOpenTime: number;
+        privateSaleMaxMint: number;
         merkleRoot: string;
     }> = {}
 ) {
@@ -106,8 +110,12 @@ export async function createDrop(
         updates.supply !== undefined ? updates.supply : NFT_SUPPLY,
         updates.royaltyPerShare || NFT_ROYALTY_PER_SHARE,
         updates.externalId || getExternalId(),
-        updates.saleOpenTime || NFT_SALE_OPEN_TIME,
-        updates.saleCloseTime || NFT_SALE_CLOSE_TIME,
+        [
+            updates.saleOpenTime || NFT_SALE_OPEN_TIME,
+            updates.saleCloseTime || NFT_SALE_CLOSE_TIME,
+            updates.privateSaleOpenTime || NFT_PRIVATE_SALE_OPEN_TIME,
+            updates.privateSaleMaxMint || NFT_PRIVATE_MAX_MINT,
+        ],
         updates.merkleRoot || NFT_MERKLE_ROOT,
     );
 }

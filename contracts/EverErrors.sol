@@ -40,6 +40,16 @@ contract EverErrors {
     error DropSoldOut();
 
     /**
+    @notice Error returned if the private sale has not started yet
+    **/
+    error PrivateSaleNotStarted();
+
+    /**
+    @notice Error returned if user has minted max quantity of NFT in private sale
+    **/
+    error MaxMintPerAddress();
+
+    /**
     @notice Error returned if the sale has not started yet
     **/
     error SaleNotStarted();

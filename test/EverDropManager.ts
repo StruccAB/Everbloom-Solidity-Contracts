@@ -98,6 +98,8 @@ describe("Ever Drop Manager", function () {
           supply: 10,
           saleOpenDate: Math.floor(new Date('2024-1-1').getTime() / 1000),
           saleCloseDate: Math.floor(new Date('2024-1-1').getTime() / 1000),
+          privateSaleOpenTime: Math.floor(new Date('2023-1-1').getTime() / 1000),
+          privateSaleMaxMint: 5,
           merkleRoot: merkleTree.root
         }
 
@@ -110,22 +112,28 @@ describe("Ever Drop Manager", function () {
         await expect(everDropManager.connect(subAdmin1).setSalesInfo(
             dropId,
             UPDATES.saleOpenDate,
-            UPDATES.saleCloseDate
+            UPDATES.saleCloseDate,
+            UPDATES.privateSaleOpenTime,
+            UPDATES.privateSaleMaxMint,
         )).to.be.not.reverted;
         await expect(everDropManager.connect(subAdmin1).setMerkleRoot(
             dropId,
             UPDATES.merkleRoot,
         )).to.be.not.reverted;
 
-        const [, , saleOpenTime, saleCloseTime, tokenInfo, , , , merkleRoot] = await everDropManager.drops(0);
-        const newSupply = Number(tokenInfo.supply);
-        const newSaleOpenTime = Number(saleOpenTime);
-        const newSaleCloseTime = Number(saleCloseTime);
-        const newMerkleRoot = String(merkleRoot);
+        const updatedDrop = await everDropManager.drops(0);
+        const newSupply = Number(updatedDrop.tokenInfo.supply);
+        const newSaleOpenTime = Number(updatedDrop.saleOpenTime);
+        const newSaleCloseTime = Number(updatedDrop.saleCloseTime);
+        const newPrivateSaleCloseTime = Number(updatedDrop.privateSaleOpenTime);
+        const newPrivateSaleMaxMint = Number(updatedDrop.privateSaleMaxMint);
+        const newMerkleRoot = String(updatedDrop.merkleRoot);
 
         await expect(newSupply).to.equal(UPDATES.supply);
         await expect(newSaleOpenTime).to.equal(UPDATES.saleOpenDate);
         await expect(newSaleCloseTime).to.equal(UPDATES.saleCloseDate);
+        await expect(newPrivateSaleCloseTime).to.equal(UPDATES.privateSaleOpenTime);
+        await expect(newPrivateSaleMaxMint).to.equal(UPDATES.privateSaleMaxMint);
         await expect(newMerkleRoot).to.equal(UPDATES.merkleRoot);
       });
 
@@ -144,9 +152,9 @@ describe("Ever Drop Manager", function () {
         await expect(everDropManager.connect(subAdmin1).setRightHolderInfo(dropId, subAdmin1.address))
             .to.be.not.reverted;
 
-        const [, , , , , , owner] = await everDropManager.drops(0);
+        const createdDrop = await everDropManager.drops(0);
 
-        await expect(owner).to.equal(subAdmin1.address);
+        await expect(createdDrop.owner).to.equal(subAdmin1.address);
       });
 
       it("Should not update drop when called by creator", async function () {
@@ -162,6 +170,8 @@ describe("Ever Drop Manager", function () {
           supply: 10,
           saleOpenDate: Math.floor(new Date('2024-1-1').getTime() / 1000),
           saleCloseDate: Math.floor(new Date('2024-1-1').getTime() / 1000),
+          privateSaleOpenTime: Math.floor(new Date('2023-1-1').getTime() / 1000),
+          privateSaleMaxMint: 5,
           merkleRoot: merkleTree.root
         }
 
@@ -172,7 +182,9 @@ describe("Ever Drop Manager", function () {
         await expect(everDropManager.connect(creator1).setSalesInfo(
             dropId,
             UPDATES.saleOpenDate,
-            UPDATES.saleCloseDate
+            UPDATES.saleCloseDate,
+            UPDATES.privateSaleOpenTime,
+            UPDATES.privateSaleMaxMint,
         )).to.be.reverted;
         await expect(everDropManager.connect(creator1).setMerkleRoot(
             dropId,
@@ -195,6 +207,8 @@ describe("Ever Drop Manager", function () {
           supply: 10,
           saleOpenDate: Math.floor(new Date('2024-1-1').getTime() / 1000),
           saleCloseDate: Math.floor(new Date('2024-1-1').getTime() / 1000),
+          privateSaleOpenTime: Math.floor(new Date('2023-1-1').getTime() / 1000),
+          privateSaleMaxMint: 5,
           merkleRoot: merkleTree.root
         }
 
@@ -205,7 +219,9 @@ describe("Ever Drop Manager", function () {
         await expect(everDropManager.connect(user1).setSalesInfo(
             dropId,
             UPDATES.saleOpenDate,
-            UPDATES.saleCloseDate
+            UPDATES.saleCloseDate,
+            UPDATES.privateSaleOpenTime,
+            UPDATES.privateSaleMaxMint,
         )).to.be.reverted;
         await expect(everDropManager.connect(user1).setMerkleRoot(
             dropId,
@@ -246,10 +262,17 @@ describe("Ever Drop Manager", function () {
         const dropId = Number(drop[0]);
         const UPDATED_SALE_OPEN_TIME = Math.floor(new Date('2023-1-1').getTime() / 1000);
         const UPDATED_CLOSE_TIME = Math.floor(new Date('2024-1-1').getTime() / 1000);
+        const UPDATED_PRIVATE_SALE_OPEN_TIME = Math.floor(new Date('2023-1-1').getTime() / 1000);
+        const UPDATED_PRIVATE_SALE_MAX_MINT = 5;
 
-        await expect(everDropManager.setSalesInfo(dropId, UPDATED_SALE_OPEN_TIME, UPDATED_CLOSE_TIME))
-            .to.emit(everDropManager, "DropSaleInfoUpdated")
-            .withArgs(dropId, UPDATED_SALE_OPEN_TIME, UPDATED_CLOSE_TIME);
+        await expect(everDropManager.setSalesInfo(
+              dropId,
+              UPDATED_SALE_OPEN_TIME,
+              UPDATED_CLOSE_TIME,
+              UPDATED_PRIVATE_SALE_OPEN_TIME,
+              UPDATED_PRIVATE_SALE_MAX_MINT
+            )).to.emit(everDropManager, "DropSaleInfoUpdated")
+            .withArgs(dropId, UPDATED_SALE_OPEN_TIME, UPDATED_CLOSE_TIME, UPDATED_PRIVATE_SALE_OPEN_TIME, UPDATED_PRIVATE_SALE_MAX_MINT);
       });
 
       it("Should emit an event on updating drop right holder", async function () {

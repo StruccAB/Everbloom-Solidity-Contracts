@@ -166,7 +166,7 @@ describe("Ever NFT", function () {
         await expect((await everDropManager.drops(0))[1]).to.equal(2);
       });
 
-      it("Should mint an NFT when sale is not started and user is in merkle root", async function () {
+      it("Should mint an NFT when private sale is started and user is in merkle root", async function () {
         const { everDropManager, everNFT, usdc, owner, user1, user2 } = await loadFixture(deployContracts);
         const merkleTree = StandardMerkleTree.of(
             [[user1.address], [owner.address], [user2.address]],
@@ -303,7 +303,113 @@ describe("Ever NFT", function () {
         )).to.be.revertedWithCustomError( everErrors, 'InsufficientBalance');
       });
 
-      it("Should not mint an NFT when sale is not started", async function () {
+      it("Should not mint an NFT when private sale is not started and user is in merkle root", async function () {
+        const { everDropManager, everNFT, usdc, owner, user1, user2, everErrors } = await loadFixture(deployContracts);
+        const merkleTree = StandardMerkleTree.of(
+            [[user1.address], [owner.address], [user2.address]],
+            ['address']
+        );
+        await createDrop(everDropManager, everNFT, owner, usdc.address, {
+          saleOpenTime: Math.floor(new Date('2098-1-1').getTime() / 1000),
+          merkleRoot: merkleTree.root,
+          privateSaleOpenTime: Math.floor(new Date('2098-1-1').getTime() / 1000)
+        })
+        const drop = await everDropManager.drops(0);
+        const dropId = Number(drop[0]);
+        let proof;
+        for (const[i,v] of merkleTree.entries()) {
+          if (v[0] == user1.address) {
+            proof = merkleTree.getProof(i);
+          }
+        }
+        const quantity = 1;
+        const amount = NFT_PRICE;
+        await transferToken(usdc, owner, user1, amount);
+        await approveToken(usdc, user1, everNFT.address , amount);
+
+        expect(await getIneligibilityMintNFTs(
+            everNFT,
+            user1,
+            dropId,
+            quantity,
+            proof
+        )).to.be.equal('PrivateSaleNotStarted');
+        await expect(mintNFTs(
+            everNFT,
+            user1,
+            dropId,
+            quantity,
+            proof
+        )).to.be.revertedWithCustomError(everErrors, 'PrivateSaleNotStarted');
+      });
+
+      it("Should not mint an NFT when private sale is started, user is in merkle root but max mint qunaity is reached", async function () {
+        const { everDropManager, everNFT, usdc, owner, user1, user2, everErrors } = await loadFixture(deployContracts);
+        const merkleTree = StandardMerkleTree.of(
+            [[user1.address], [owner.address], [user2.address]],
+            ['address']
+        );
+        await createDrop(everDropManager, everNFT, owner, usdc.address, {
+          saleOpenTime: Math.floor(new Date('2098-1-1').getTime() / 1000),
+          merkleRoot: merkleTree.root,
+          privateSaleMaxMint: 5,
+        })
+        const drop = await everDropManager.drops(0);
+        const dropId = Number(drop[0]);
+        let proof;
+        for (const[i,v] of merkleTree.entries()) {
+          if (v[0] == user1.address) {
+            proof = merkleTree.getProof(i);
+          }
+        }
+        const quantity = 3;
+        const amount = NFT_PRICE * quantity;
+        await transferToken(usdc, owner, user1, amount);
+        await approveToken(usdc, user1, everNFT.address , amount);
+
+        await expect(mintNFTs(
+            everNFT,
+            user1,
+            dropId,
+            quantity,
+            proof
+        )).to.be.not.reverted;
+
+        const quantity2 = 2;
+        const amount2 = NFT_PRICE * quantity2;
+        await transferToken(usdc, owner, user1, amount2);
+        await approveToken(usdc, user1, everNFT.address , amount2);
+
+        await expect(mintNFTs(
+            everNFT,
+            user1,
+            dropId,
+            quantity2,
+            proof
+        )).to.be.not.reverted;
+
+        const amount3 = NFT_PRICE;
+        const quantity3 = 1;
+        await transferToken(usdc, owner, user1, amount3);
+        await approveToken(usdc, user1, everNFT.address , amount3);
+
+        expect(await getIneligibilityMintNFTs(
+            everNFT,
+            user1,
+            dropId,
+            quantity3,
+            proof
+        )).to.be.equal('MaxMintPerAddress');
+        await expect(mintNFTs(
+            everNFT,
+            user1,
+            dropId,
+            quantity2,
+            proof
+        )).to.be.revertedWithCustomError(everErrors, 'MaxMintPerAddress');
+      });
+
+      it("Should not mint an NFT when public sale is not started", async function () {
         const { everDropManager, everNFT, everErrors, owner, user1, usdc } = await loadFixture(deployContracts);
         await createDrop(everDropManager, everNFT, owner, usdc.address, {
           saleOpenTime: Math.floor(new Date('2098-1-1').getTime() / 1000)
@@ -329,7 +435,7 @@ describe("Ever NFT", function () {
         )).to.be.revertedWithCustomError(everErrors, 'SaleNotStarted');
       });
 
-      it("Should not mint an NFT when sale is not started and user is not in merkle root", async function () {
+      it("Should not mint an NFT when public sale is not started and user is not in merkle root", async function () {
         const { everDropManager, everNFT, everErrors, owner, user1, user2, usdc } = await loadFixture(deployContracts);
         const merkleTree = StandardMerkleTree.of(
             [[owner.address], [user2.address]],
