@@ -42,8 +42,6 @@ contract EverNFT is
     address public dropManager;
     // @dev store the address of the Ever fund collector Multi-sig wallet
     address public treasury;
-    // @dev store the address of the supported ERC20 token
-    address public erc20tokenAddress;
     // @dev stores the Mapping (Token ID) => Drop ID
     mapping(uint256 => uint256) public tokenIdToDropId;
 
@@ -54,7 +52,6 @@ contract EverNFT is
      *  EverNFT contract initialize function
      *
      * @param _dropManager : address of the drop manager contract
-     * @param _erc20tokenAddress : address of the ERC 20 contract
      * @param _treasury : address of the Ever fund collector Multi-sig wallet
      * @param _baseURI : base uri of the tokens
      * @param _name : name of the NFT contract
@@ -62,7 +59,6 @@ contract EverNFT is
      **/
     function initialize(
         address _dropManager,
-        address _erc20tokenAddress,
         address _treasury,
         string memory _baseURI,
         string memory _name,
@@ -83,7 +79,6 @@ contract EverNFT is
 
         baseTokenURI = _baseURI;
         dropManager = _dropManager;
-        erc20tokenAddress = _erc20tokenAddress;
         treasury = _treasury;
         // register the IEverNFT Interface
         _registerInterface(type(IEverNFT).interfaceId);
@@ -200,11 +195,11 @@ contract EverNFT is
             revert SaleEnded();
         if (drop.tokenInfo.price > 0) {
             // Check that user has sufficient balance
-            if (IERC20(erc20tokenAddress).balanceOf(msg.sender) < drop.tokenInfo.price * _quantity)
+            if (IERC20(drop.tokenInfo.erc20tokenAddress).balanceOf(msg.sender) < drop.tokenInfo.price * _quantity)
                 revert InsufficientBalance();
 
             // Check that user has approved sufficient balance
-            if (IERC20(erc20tokenAddress).allowance(msg.sender, address(this)) < drop.tokenInfo.price * _quantity)
+            if (IERC20(drop.tokenInfo.erc20tokenAddress).allowance(msg.sender, address(this)) < drop.tokenInfo.price * _quantity)
                 revert IncorrectAmountSent();
         }
 
@@ -222,7 +217,7 @@ contract EverNFT is
 
         // transfer Fee to the treasury address
         if (drop.tokenInfo.price > 0) {
-            IERC20(erc20tokenAddress).transferFrom(msg.sender, treasury, drop.tokenInfo.price * _quantity);
+            IERC20(drop.tokenInfo.erc20tokenAddress).transferFrom(msg.sender, treasury, drop.tokenInfo.price * _quantity);
         }
     }
 
@@ -321,19 +316,5 @@ contract EverNFT is
         if (_newTreasury == address(0))
             revert InvalidAddress();
         treasury = _newTreasury;
-    }
-
-    /**
-     * @notice
-     *  Update the ERC20 token Address
-     *  Only the contract owner can perform this operation
-     *
-     * @param _erc20tokenAddress : new ERC20 token Address
-     */
-    function setERC20TokenAddress(address _erc20tokenAddress)
-    external
-    onlyOwner
-    {
-        erc20tokenAddress = _erc20tokenAddress;
     }
 }

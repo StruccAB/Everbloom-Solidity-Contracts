@@ -140,6 +140,8 @@ contract EverDropManager is
      * @param _owner : right holder address
      * @param _nft : NFT contract address
      * @param _price : initial price of 1 NFT
+     * @param _erc20tokenAddress : address of ERC20 in which payment will be made
+     * @param _erc20tokenDenominator : denominator of the supported payment ERC20 token
      * @param _supply : total number of NFT for this drop (accross all associated tokenId)
      * @param _royaltySharePerToken : total percentage of royalty evenly distributed among NFT holders
      * @param _externalId : id of the print in legacy app
@@ -151,6 +153,8 @@ contract EverDropManager is
         address _owner,
         address _nft,
         uint256 _price,
+        address _erc20tokenAddress,
+        uint256 _erc20tokenDenominator,
         uint128 _supply,
         uint128 _royaltySharePerToken,
         string memory _externalId,
@@ -174,8 +178,23 @@ contract EverDropManager is
             revert InvalidInterface();
 
         uint dropId = drops.length;
-        TokenInfo memory dropTokenInfo = TokenInfo(_price, _supply, _royaltySharePerToken);
-        drops.push(Drop(dropId, 0, _saleOpenTime, _saleCloseTime, dropTokenInfo, _externalId, _owner, _nft, _merkle));
+        drops.push(Drop(
+            dropId,
+            0,
+            _saleOpenTime,
+            _saleCloseTime,
+            TokenInfo(
+                _price,
+                _erc20tokenAddress,
+                _erc20tokenDenominator,
+                _supply,
+                _royaltySharePerToken
+            ),
+            _externalId,
+            _owner,
+            _nft,
+            _merkle
+        ));
         externalIdToDropId[_externalId] = dropId;
 
         emit NewDrop(dropId, _externalId, _nft);

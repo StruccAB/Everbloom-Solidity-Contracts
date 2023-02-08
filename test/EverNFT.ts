@@ -75,7 +75,7 @@ describe("Ever NFT", function () {
     describe("Validations", function () {
       it("Should mint an NFT when called by a user", async function () {
         const { everDropManager, everNFT, owner, user1, usdc } = await loadFixture(deployContracts);
-        await createDrop(everDropManager, everNFT, owner);
+        await createDrop(everDropManager, everNFT, owner, usdc.address);
         const drop = await everDropManager.drops(0);
         const dropId = Number(drop[0]);
         let dropNftSold = drop[1];
@@ -104,8 +104,8 @@ describe("Ever NFT", function () {
       });
 
       it("Should mint an NFT without paying when drop is free", async function () {
-        const { everDropManager, everNFT, owner, user1 } = await loadFixture(deployContracts);
-        await createDrop(everDropManager, everNFT, owner, { price: 0 });
+        const { everDropManager, everNFT, usdc, owner, user1 } = await loadFixture(deployContracts);
+        await createDrop(everDropManager, everNFT, owner, usdc.address, { price: 0 });
         const drop = await everDropManager.drops(0);
         const dropId = Number(drop[0]);
         const quantity = 1;
@@ -121,7 +121,7 @@ describe("Ever NFT", function () {
 
       it("Should mint multiple NFT when called by a user", async function () {
         const { everDropManager, everNFT, owner, user1, usdc } = await loadFixture(deployContracts);
-        await createDrop(everDropManager, everNFT, owner);
+        await createDrop(everDropManager, everNFT, owner, usdc.address);
         const drop = await everDropManager.drops(0);
         const dropId = Number(drop[0]);
         let dropNftSold = drop[1];
@@ -148,7 +148,7 @@ describe("Ever NFT", function () {
             [[user1.address], [owner.address], [user2.address]],
             ['address']
         );
-        await createDrop(everDropManager, everNFT, owner, {
+        await createDrop(everDropManager, everNFT, owner, usdc.address, {
           saleOpenTime: Math.floor(new Date('2098-1-1').getTime() / 1000),
           merkleRoot: merkleTree.root
         })
@@ -176,7 +176,7 @@ describe("Ever NFT", function () {
 
       it("Should transfer the funds to the drop owner", async function () {
         const { everDropManager, everNFT, owner, user1, usdc } = await loadFixture(deployContracts);
-        await createDrop(everDropManager, everNFT, owner);
+        await createDrop(everDropManager, everNFT, owner, usdc.address);
         const drop = await everDropManager.drops(0);
         const dropId = Number(drop[0]);
         const quantity = 1
@@ -198,7 +198,7 @@ describe("Ever NFT", function () {
 
       it("Should not mint an NFT when contract is paused", async function () {
         const { everDropManager, everNFT, owner, user1, usdc } = await loadFixture(deployContracts);
-        await createDrop(everDropManager, everNFT, owner)
+        await createDrop(everDropManager, everNFT, owner, usdc.address)
         await everNFT.pause();
         const drop = await everDropManager.drops(0);
         const dropId = Number(drop[0]);
@@ -224,7 +224,7 @@ describe("Ever NFT", function () {
       it("Should not mint an NFT when amount is correct but allowance is insufficient", async function () {
         const { everDropManager, everNFT, owner, user1, usdc, everErrors } = await loadFixture(deployContracts);
         const updatedPrice = NFT_PRICE * 10;
-        await createDrop(everDropManager, everNFT, owner, {
+        await createDrop(everDropManager, everNFT, owner, usdc.address, {
           price: updatedPrice
         })
         const drop = await everDropManager.drops(0);
@@ -245,7 +245,7 @@ describe("Ever NFT", function () {
       it("Should not mint an NFT when allowance is correct but balance is insufficient", async function () {
         const { everDropManager, everNFT, everErrors, owner, user1, usdc } = await loadFixture(deployContracts);
         const updatedPrice = NFT_PRICE;
-        await createDrop(everDropManager, everNFT, owner, {
+        await createDrop(everDropManager, everNFT, owner, usdc.address, {
           price: updatedPrice
         })
         const drop = await everDropManager.drops(0);
@@ -265,7 +265,7 @@ describe("Ever NFT", function () {
 
       it("Should not mint an NFT when sale is not started", async function () {
         const { everDropManager, everNFT, everErrors, owner, user1, usdc } = await loadFixture(deployContracts);
-        await createDrop(everDropManager, everNFT, owner, {
+        await createDrop(everDropManager, everNFT, owner, usdc.address, {
           saleOpenTime: Math.floor(new Date('2098-1-1').getTime() / 1000)
         })
         const drop = await everDropManager.drops(0);
@@ -295,7 +295,7 @@ describe("Ever NFT", function () {
             [[owner.address], [user2.address]],
             ['address']
         );
-        await createDrop(everDropManager, everNFT, owner, {
+        await createDrop(everDropManager, everNFT, owner, usdc.address, {
           saleOpenTime: Math.floor(new Date('2098-1-1').getTime() / 1000),
           merkleRoot: merkleTree.root
         })
@@ -330,7 +330,7 @@ describe("Ever NFT", function () {
 
       it("Should not mint an NFT when sale is not started", async function () {
         const { everDropManager, everNFT, everErrors, owner, user1, usdc } = await loadFixture(deployContracts);
-        await createDrop(everDropManager, everNFT, owner, {
+        await createDrop(everDropManager, everNFT, owner, usdc.address, {
           saleOpenTime: Math.floor(new Date('2022-1-1').getTime() / 1000),
           saleCloseTime: Math.floor(new Date('2022-1-9').getTime() / 1000),
         })
@@ -357,7 +357,7 @@ describe("Ever NFT", function () {
 
       it("Should not mint an NFT when drop is sold out", async function () {
         const { everDropManager, everNFT, everErrors, owner, user1, usdc } = await loadFixture(deployContracts);
-        await createDrop(everDropManager, everNFT, owner, {
+        await createDrop(everDropManager, everNFT, owner, usdc.address, {
           supply: 1
         })
         const drop = await everDropManager.drops(0);
@@ -390,7 +390,7 @@ describe("Ever NFT", function () {
 
       it("Should not mint an NFT when not enough tokens are available", async function () {
         const { everDropManager, everNFT, everErrors, owner, user1, usdc } = await loadFixture(deployContracts);
-        await createDrop(everDropManager, everNFT, owner, {
+        await createDrop(everDropManager, everNFT, owner, usdc.address, {
           supply: 1
         })
         const drop = await everDropManager.drops(0);
@@ -418,7 +418,7 @@ describe("Ever NFT", function () {
     describe("events", function () {
       it("Should emit transfer events on minting NFT", async function () {
         const { everDropManager, everNFT, owner, user1, usdc } = await loadFixture(deployContracts);
-        await createDrop(everDropManager, everNFT, owner);
+        await createDrop(everDropManager, everNFT, owner, usdc.address);
         const drop = await everDropManager.drops(0);
         const dropId = Number(drop[0]);
         const amount = NFT_PRICE;
@@ -437,7 +437,7 @@ describe("Ever NFT", function () {
 
       it("Should emit NewPrintMinted events on minting NFT", async function () {
         const { everDropManager, everNFT, owner, user1, usdc } = await loadFixture(deployContracts);
-        await createDrop(everDropManager, everNFT, owner);
+        await createDrop(everDropManager, everNFT, owner, usdc.address);
         const drop = await everDropManager.drops(0);
         const dropId = Number(drop[0]);
         const amount = NFT_PRICE;
@@ -455,7 +455,7 @@ describe("Ever NFT", function () {
 
       it("Should emit multiple events on batch minting NFT", async function () {
         const { everDropManager, everNFT, owner, user1, usdc } = await loadFixture(deployContracts);
-        await createDrop(everDropManager, everNFT, owner);
+        await createDrop(everDropManager, everNFT, owner, usdc.address);
         const drop = await everDropManager.drops(0);
         const dropId = Number(drop[0]);
         const quantity = 2;

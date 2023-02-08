@@ -36,7 +36,7 @@ export async function deployContracts() {
     const everDropManager = await upgrades.deployProxy(EverDropManager, [owner.address], { kind: 'uups' });
     const everNFT = await upgrades.deployProxy(
         EverNFT,
-        [everDropManager.address, usdc.address, owner.address, BASE_URI, NFT_NAME, NFT_SYMBOL],
+        [everDropManager.address, owner.address, BASE_URI, NFT_NAME, NFT_SYMBOL],
         { kind: 'uups' },
     );
 
@@ -77,6 +77,7 @@ export async function createDrop(
     everDropManager: Contract,
     everNFT: Contract,
     creator: SignerWithAddress,
+    erc20Address: string,
     updates: Partial<{
         nftAddress: string;
         price: number,
@@ -92,6 +93,8 @@ export async function createDrop(
         creator.address,
         updates.nftAddress || everNFT.address,
         updates.price !== undefined ? updates.price : NFT_PRICE,
+        erc20Address,
+        ERC_20_DECIMAL_POINT,
         updates.supply !== undefined ? updates.supply : NFT_SUPPLY,
         updates.royaltyPerShare || NFT_ROYALTY_PER_SHARE,
         updates.externalId || getExternalId(),
