@@ -110,9 +110,6 @@ contract EverDropManager is
         if (msg.sender != drop.nft)
             revert UnauthorizedUpdate();
 
-        if ((drop.sold + _quantity) > drop.tokenInfo.supply)
-            revert NotEnoughTokensAvailable();
-
         drop.sold += _quantity;
     }
 
