@@ -9,7 +9,8 @@ import "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpg
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import { MerkleProof } from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
 import "./IEverDropManager.sol";
@@ -33,6 +34,7 @@ contract EverNFT is
     IEverNFT
 {
     using CountersUpgradeable for CountersUpgradeable.Counter;
+    using SafeERC20Upgradeable for IERC20Upgradeable;
 
     // @dev Stores the counter for NFT id
     CountersUpgradeable.Counter private _tokenIds;
@@ -202,11 +204,11 @@ contract EverNFT is
             revert SaleEnded();
         if (drop.tokenInfo.price > 0) {
             // Check that user has sufficient balance
-            if (IERC20(drop.tokenInfo.erc20tokenAddress).balanceOf(msg.sender) < drop.tokenInfo.price * _quantity)
+            if (IERC20Upgradeable(drop.tokenInfo.erc20tokenAddress).balanceOf(msg.sender) < drop.tokenInfo.price * _quantity)
                 revert InsufficientBalance();
 
             // Check that user has approved sufficient balance
-            if (IERC20(drop.tokenInfo.erc20tokenAddress).allowance(msg.sender, address(this)) < drop.tokenInfo.price * _quantity)
+            if (IERC20Upgradeable(drop.tokenInfo.erc20tokenAddress).allowance(msg.sender, address(this)) < drop.tokenInfo.price * _quantity)
                 revert IncorrectAmountSent();
         }
 
@@ -224,7 +226,7 @@ contract EverNFT is
 
         // transfer Fee to the treasury address
         if (drop.tokenInfo.price > 0) {
-            IERC20(drop.tokenInfo.erc20tokenAddress).transferFrom(msg.sender, treasury, drop.tokenInfo.price * _quantity);
+            IERC20Upgradeable(drop.tokenInfo.erc20tokenAddress).safeTransferFrom(msg.sender, treasury, drop.tokenInfo.price * _quantity);
         }
     }
 
