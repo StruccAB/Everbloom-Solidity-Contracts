@@ -35,14 +35,19 @@ contract EverErrors {
     );
 
     /**
-    @notice Error returned if the quantity does not match externalIds
-    **/
-    error IncorrectExternalIds();
-
-    /**
     @notice Error returned if the drop is sold-out
     **/
     error DropSoldOut();
+
+    /**
+    @notice Error returned if the private sale has not started yet
+    **/
+    error PrivateSaleNotStarted();
+
+    /**
+    @notice Error returned if user has minted max quantity of NFT in private sale
+    **/
+    error MaxMintPerAddress();
 
     /**
     @notice Error returned if the sale has not started yet
@@ -73,11 +78,4 @@ contract EverErrors {
     @notice Error returned if user had insufficient balance
     **/
     error InsufficientBalance();
-
-    /**
-    @notice Error returned if the external id of the print is conflicting
-    **/
-    error PrintConflict(
-        string externalId
-    );
 }

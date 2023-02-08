@@ -10,6 +10,7 @@ export const SUB_ADMIN_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('S
 export const CREATOR_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('CREATOR_ROLE'));
 export const ERC_20_DECIMAL_POINT = 1_000_000;
 export const BASE_URI = 'https://api.everbloom.app/';
+export const UPDATED_BASE_URI = 'https://api.everbloom.app/v2';
 export const NFT_NAME = 'EverNFT';
 export const NFT_SYMBOL = 'EverNFT';
 export const NFT_PRICE = 100 * ERC_20_DECIMAL_POINT;
@@ -17,6 +18,8 @@ export const NFT_SUPPLY = 100;
 export const NFT_ROYALTY_PER_SHARE = 1;
 export const NFT_SALE_OPEN_TIME = Math.floor(Date.now() / 1000);
 export const NFT_SALE_CLOSE_TIME = Math.floor(new Date('2099-1-1').getTime() / 1000);
+export const NFT_PRIVATE_SALE_OPEN_TIME = Math.floor(new Date().getTime() / 1000);
+export const NFT_PRIVATE_MAX_MINT = 1;
 export const NFT_MERKLE_ROOT = ethers.constants.HashZero;
 
 export const getExternalId = (number = 1) => `EXTERNAL_ID_${number}`;
@@ -28,6 +31,7 @@ export async function deployContracts() {
 
     const EverDropManager = await ethers.getContractFactory("EverDropManager");
     const EverNFT = await ethers.getContractFactory("EverNFT");
+    const EverNFT2 = await ethers.getContractFactory("EverNFT");
     const EverErrors = await ethers.getContractFactory("EverErrors");
     const Usdc = await ethers.getContractFactory("USDC");
 
@@ -36,13 +40,19 @@ export async function deployContracts() {
     const everDropManager = await upgrades.deployProxy(EverDropManager, [owner.address], { kind: 'uups' });
     const everNFT = await upgrades.deployProxy(
         EverNFT,
-        [everDropManager.address, usdc.address, owner.address, BASE_URI, NFT_NAME, NFT_SYMBOL],
+        [everDropManager.address, owner.address, BASE_URI, NFT_NAME, NFT_SYMBOL],
+        { kind: 'uups' },
+    );
+    const everNFT2 = await upgrades.deployProxy(
+        EverNFT2,
+        [everDropManager.address, owner.address, BASE_URI, NFT_NAME, NFT_SYMBOL],
         { kind: 'uups' },
     );
 
     return {
         everDropManager,
         everNFT,
+        everNFT2,
         everErrors,
         usdc,
         owner,
@@ -73,24 +83,11 @@ export const approveToken = (
     return usdc.connect(from).approve(to, amount)
 }
 
-export const deployContractV2 = (everDropManagerAddress: string) => {
-    async function deploy() {
-        const EverDropManager2 = await ethers.getContractFactory("EverDropManager2");
-        const everDropManager2 = await upgrades.upgradeProxy(everDropManagerAddress, EverDropManager2);
-
-        return {
-            everDropManager2,
-        }
-    }
-
-    return loadFixture(deploy);
-}
-
-
 export async function createDrop(
     everDropManager: Contract,
     everNFT: Contract,
     creator: SignerWithAddress,
+    erc20Address: string,
     updates: Partial<{
         nftAddress: string;
         price: number,
@@ -99,6 +96,8 @@ export async function createDrop(
         externalId: string,
         saleOpenTime: number;
         saleCloseTime: number;
+        privateSaleOpenTime: number;
+        privateSaleMaxMint: number;
         merkleRoot: string;
     }> = {}
 ) {
@@ -106,11 +105,17 @@ export async function createDrop(
         creator.address,
         updates.nftAddress || everNFT.address,
         updates.price !== undefined ? updates.price : NFT_PRICE,
+        erc20Address,
+        ERC_20_DECIMAL_POINT,
         updates.supply !== undefined ? updates.supply : NFT_SUPPLY,
         updates.royaltyPerShare || NFT_ROYALTY_PER_SHARE,
         updates.externalId || getExternalId(),
-        updates.saleOpenTime || NFT_SALE_OPEN_TIME,
-        updates.saleCloseTime || NFT_SALE_CLOSE_TIME,
+        [
+            updates.saleOpenTime || NFT_SALE_OPEN_TIME,
+            updates.saleCloseTime || NFT_SALE_CLOSE_TIME,
+            updates.privateSaleOpenTime || NFT_PRIVATE_SALE_OPEN_TIME,
+            updates.privateSaleMaxMint || NFT_PRIVATE_MAX_MINT,
+        ],
         updates.merkleRoot || NFT_MERKLE_ROOT,
     );
 }
@@ -120,14 +125,12 @@ export async function mintNFTs(
     buyer: SignerWithAddress,
     dropId: number,
     quantity: number,
-    externalIds: string[],
     merkleProof: string[] = [NFT_MERKLE_ROOT],
 ) {
     return everNFT.connect(buyer).mint(
         buyer.address,
         dropId,
         quantity,
-        externalIds,
         merkleProof,
     )
 }
@@ -137,14 +140,12 @@ export async function getIneligibilityMintNFTs(
     buyer: SignerWithAddress,
     dropId: number,
     quantity: number,
-    externalIds: string[],
     merkleProof: string[] = [NFT_MERKLE_ROOT],
 ) {
     return everNFT.connect(buyer).getIneligibilityReason(
         buyer.address,
         dropId,
         quantity,
-        externalIds,
         merkleProof,
     )
 }

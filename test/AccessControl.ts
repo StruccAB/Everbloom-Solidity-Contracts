@@ -58,7 +58,7 @@ describe("Access Control", function () {
       it("Should grant sub admin role when called by admin", async function () {
         const { everDropManager, subAdmin1 } = await loadFixture(deployContracts);
 
-        await expect(await everDropManager.addSubAdmin(subAdmin1.address)).to.be.not.reverted;
+        await expect(await everDropManager.grantRole(everDropManager.SUB_ADMIN_ROLE(), subAdmin1.address)).to.be.not.reverted;
         await expect(await everDropManager.hasRole(
             SUB_ADMIN_ROLE,
             subAdmin1.address
@@ -67,9 +67,9 @@ describe("Access Control", function () {
 
       it("Should revoke sub admin role when called by admin", async function () {
         const { everDropManager, subAdmin1 } = await loadFixture(deployContracts);
-        await everDropManager.addSubAdmin(subAdmin1.address)
+        await everDropManager.grantRole(everDropManager.SUB_ADMIN_ROLE(), subAdmin1.address)
 
-        await expect(await everDropManager.removeSubAdmin(subAdmin1.address)).to.be.not.reverted;
+        await expect(await everDropManager.revokeRole(everDropManager.SUB_ADMIN_ROLE(), subAdmin1.address)).to.be.not.reverted;
         await expect(await everDropManager.hasRole(
             SUB_ADMIN_ROLE,
             subAdmin1.address
@@ -78,32 +78,32 @@ describe("Access Control", function () {
 
       it("Should not grant sub admin role when called by another sub admin", async function () {
         const { everDropManager, subAdmin1, subAdmin2 } = await loadFixture(deployContracts);
-        await everDropManager.addSubAdmin(subAdmin1.address);
+        await everDropManager.grantRole(everDropManager.SUB_ADMIN_ROLE(), subAdmin1.address);
 
-        await expect(everDropManager.connect(subAdmin1).addSubAdmin(
+        await expect(everDropManager.connect(subAdmin1).grantRole(everDropManager.SUB_ADMIN_ROLE(),
             subAdmin2.address
         )).to.be.revertedWith(getAccessControlRevertReason(subAdmin1.address, DEFAULT_ADMIN_ROLE));
       });
 
       it("Should not revoke sub admin role when called by another sub admin", async function () {
         const { everDropManager, subAdmin1, subAdmin2 } = await loadFixture(deployContracts);
-        await everDropManager.addSubAdmin(subAdmin1.address);
-        await everDropManager.addSubAdmin(subAdmin2.address);
+        await everDropManager.grantRole(everDropManager.SUB_ADMIN_ROLE(), subAdmin1.address);
+        await everDropManager.grantRole(everDropManager.SUB_ADMIN_ROLE(), subAdmin2.address);
 
-        await expect(everDropManager.connect(subAdmin1).removeSubAdmin(
+        await expect(everDropManager.connect(subAdmin1).revokeRole(everDropManager.SUB_ADMIN_ROLE(),
             subAdmin2.address
         )).to.be.revertedWith(getAccessControlRevertReason(subAdmin1.address, DEFAULT_ADMIN_ROLE));
       });
 
       it("Should grant creator roles when called by sub admin", async function () {
         const { everDropManager, subAdmin1, creator1 } = await loadFixture(deployContracts);
-        await everDropManager.addSubAdmin(subAdmin1.address)
+        await everDropManager.grantRole(everDropManager.SUB_ADMIN_ROLE(), subAdmin1.address)
 
         await expect(await everDropManager.hasRole(
             CREATOR_ROLE,
             creator1.address
         )).to.equal(false);
-        await expect(everDropManager.connect(subAdmin1).addCreator(creator1.address)).to.be.not.reverted;
+        await expect(everDropManager.connect(subAdmin1).grantRole(everDropManager.CREATOR_ROLE(), creator1.address)).to.be.not.reverted;
         await expect(await everDropManager.hasRole(
             CREATOR_ROLE,
             creator1.address
@@ -112,14 +112,14 @@ describe("Access Control", function () {
 
       it("Should revoke creator roles when called by sub admin", async function () {
         const { everDropManager, subAdmin1, creator1 } = await loadFixture(deployContracts);
-        await everDropManager.addSubAdmin(subAdmin1.address)
-        await everDropManager.connect(subAdmin1).addCreator(creator1.address)
+        await everDropManager.grantRole(everDropManager.SUB_ADMIN_ROLE(), subAdmin1.address)
+        await everDropManager.connect(subAdmin1).grantRole(everDropManager.CREATOR_ROLE(), creator1.address)
 
         await expect(await everDropManager.hasRole(
             CREATOR_ROLE,
             creator1.address
         )).to.equal(true);
-        await expect(everDropManager.connect(subAdmin1).removeCreator(creator1.address)).to.be.not.reverted;
+        await expect(everDropManager.connect(subAdmin1).revokeRole(everDropManager.CREATOR_ROLE(),creator1.address)).to.be.not.reverted;
         await expect(await everDropManager.hasRole(
             CREATOR_ROLE,
             creator1.address
@@ -130,41 +130,41 @@ describe("Access Control", function () {
         const { everDropManager, user1, user2 } = await loadFixture(deployContracts);
         const subAdminHexString = ethers.utils.hexValue(SUB_ADMIN_ROLE);
 
-        await expect(everDropManager.connect(user1).addSubAdmin(user2.address))
+        await expect(everDropManager.connect(user1).grantRole(everDropManager.SUB_ADMIN_ROLE(), user2.address))
             .to.be.revertedWith(getAccessControlRevertReason(user1.address, DEFAULT_ADMIN_ROLE));
-        await expect(everDropManager.connect(user1).addCreator(user2.address))
+        await expect(everDropManager.connect(user1).grantRole(everDropManager.CREATOR_ROLE(), user2.address))
             .to.be.revertedWith(getAccessControlRevertReason(user1.address, subAdminHexString));
       });
 
       it("Should not grant roles when called by creator", async function () {
         const { everDropManager, creator1, user1 } = await loadFixture(deployContracts);
         const roleHexString = ethers.utils.hexValue(SUB_ADMIN_ROLE);
-        await everDropManager.addCreator(creator1.address);
+        await everDropManager.grantRole(everDropManager.CREATOR_ROLE(), creator1.address);
 
-        await expect(everDropManager.connect(creator1).addSubAdmin(user1.address))
+        await expect(everDropManager.connect(creator1).grantRole(everDropManager.SUB_ADMIN_ROLE(), user1.address))
             .to.be.revertedWith(getAccessControlRevertReason(creator1.address, DEFAULT_ADMIN_ROLE));
-        await expect(everDropManager.connect(creator1).addCreator(user1.address))
+        await expect(everDropManager.connect(creator1).grantRole(everDropManager.CREATOR_ROLE(), user1.address))
             .to.be.revertedWith(getAccessControlRevertReason(creator1.address, roleHexString));
       });
 
       it("Should not revoke roles when called by user", async function () {
         const { everDropManager, creator1, user1 } = await loadFixture(deployContracts);
         const roleHexString = ethers.utils.hexValue(SUB_ADMIN_ROLE);
-        await everDropManager.addCreator(creator1.address);
+        await everDropManager.grantRole(everDropManager.CREATOR_ROLE(), creator1.address);
 
-        await expect(everDropManager.connect(user1).removeCreator(creator1.address))
+        await expect(everDropManager.connect(user1).revokeRole(everDropManager.CREATOR_ROLE(),creator1.address))
             .to.be.revertedWith(getAccessControlRevertReason(user1.address, roleHexString))
       });
 
       it("Should not revoke roles when called by creator", async function () {
         const { everDropManager, creator1, creator2 } = await loadFixture(deployContracts);
         const roleHexString = ethers.utils.hexValue(SUB_ADMIN_ROLE);
-        await everDropManager.addCreator(creator1.address);
-        await everDropManager.addCreator(creator2.address);
+        await everDropManager.grantRole(everDropManager.CREATOR_ROLE(), creator1.address);
+        await everDropManager.grantRole(everDropManager.CREATOR_ROLE(), creator2.address);
 
-        await expect(everDropManager.connect(creator1).removeSubAdmin(creator2.address))
+        await expect(everDropManager.connect(creator1).revokeRole(everDropManager.SUB_ADMIN_ROLE(), creator2.address))
             .to.be.revertedWith(getAccessControlRevertReason(creator1.address, DEFAULT_ADMIN_ROLE));
-        await expect(everDropManager.connect(creator1).removeCreator(creator2.address))
+        await expect(everDropManager.connect(creator1).revokeRole(everDropManager.CREATOR_ROLE(),creator2.address))
             .to.be.revertedWith(getAccessControlRevertReason(creator1.address, roleHexString));
       });
     });
@@ -173,23 +173,23 @@ describe("Access Control", function () {
       it("Should emit an event on granting roles", async function () {
         const { everDropManager, owner, subAdmin1, creator1 } = await loadFixture(deployContracts);
 
-        await expect(await everDropManager.addSubAdmin(subAdmin1.address))
+        await expect(await everDropManager.grantRole(everDropManager.SUB_ADMIN_ROLE(), subAdmin1.address))
             .to.emit(everDropManager, "RoleGranted")
             .withArgs(SUB_ADMIN_ROLE, subAdmin1.address, owner.address);
-        await expect(await everDropManager.addCreator(creator1.address))
+        await expect(await everDropManager.connect(subAdmin1).grantRole(everDropManager.CREATOR_ROLE(), creator1.address))
             .to.emit(everDropManager, "RoleGranted")
-            .withArgs(CREATOR_ROLE, creator1.address, owner.address);
+            .withArgs(CREATOR_ROLE, creator1.address, subAdmin1.address);
       });
 
       it("Should emit an event on revoking roles", async function () {
         const { everDropManager, subAdmin1, creator1, owner } = await loadFixture(deployContracts);
-        await everDropManager.addSubAdmin(subAdmin1.address);
-        await everDropManager.addCreator(creator1.address);
+        await everDropManager.grantRole(everDropManager.SUB_ADMIN_ROLE(), subAdmin1.address);
+        await everDropManager.connect(subAdmin1).grantRole(everDropManager.CREATOR_ROLE(), creator1.address);
 
-        await expect(await everDropManager.removeSubAdmin(subAdmin1.address))
+        await expect(await everDropManager.revokeRole(everDropManager.SUB_ADMIN_ROLE(), subAdmin1.address))
             .to.emit(everDropManager, "RoleRevoked")
             .withArgs(SUB_ADMIN_ROLE, subAdmin1.address, owner.address);
-        await expect(await everDropManager.removeCreator(creator1.address))
+        await expect(await everDropManager.revokeRole(everDropManager.CREATOR_ROLE(),creator1.address))
             .to.emit(everDropManager, "RoleRevoked")
             .withArgs(CREATOR_ROLE, creator1.address, owner.address);
       });

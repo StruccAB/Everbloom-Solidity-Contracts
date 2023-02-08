@@ -11,7 +11,7 @@
     "compile": "hardhat compile",
     "test": "hardhat test",
     "test:gas": "REPORT_GAS=true hardhat test",
-    "test:coverage": "hardhat coverage",
+    "test:coverage": "hardhat coverage --solcoverjs ./.solcover.ts",
     "check": "hardhat check",
     "typechain": "hardhat typechain",
     "node": "hardhat node"
@@ -44,8 +44,8 @@
   },
   "dependencies": {
     "@alch/alchemy-web3": "^1.4.7",
-    "@openzeppelin/contracts": "^4.8.0",
-    "@openzeppelin/contracts-upgradeable": "^4.8.0",
+    "@openzeppelin/contracts": "4.8.1",
+    "@openzeppelin/contracts-upgradeable": "4.8.1",
     "@openzeppelin/hardhat-upgrades": "^1.21.0",
     "@openzeppelin/merkle-tree": "^1.0.1",
     "dotenv": "^16.0.3"

@@ -9,7 +9,8 @@ import "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpg
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import { MerkleProof } from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
 import "./IEverDropManager.sol";
@@ -29,11 +30,11 @@ contract EverNFT is
     OwnableUpgradeable,
     ERC721PausableUpgradeable,
     ERC721EnumerableUpgradeable,
-    ERC165StorageUpgradeable
+    ERC165StorageUpgradeable,
+    IEverNFT
 {
     using CountersUpgradeable for CountersUpgradeable.Counter;
-
-    event NewPrintMinted(uint256 dropId, uint256 tokenId, string externalId, uint128 serialNumber);
+    using SafeERC20Upgradeable for IERC20Upgradeable;
 
     // @dev Stores the counter for NFT id
     CountersUpgradeable.Counter private _tokenIds;
@@ -43,12 +44,18 @@ contract EverNFT is
     address public dropManager;
     // @dev store the address of the Ever fund collector Multi-sig wallet
     address public treasury;
-    // @dev store the address of the supported ERC20 token
-    address public erc20tokenAddress;
     // @dev stores the Mapping (Token ID) => Drop ID
     mapping(uint256 => uint256) public tokenIdToDropId;
-    // @dev stores the Mapping (Everbloom ID) => Token ID
-    mapping(string => uint256) public externalIdToTokenId;
+    // @dev stores the amounts of tokens minted per address during private sale
+    mapping(uint256 => mapping(address => uint128))
+    public mintedPerDropPrivateSale;
+
+    // -------------------- constructor -------------------- //
+
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
 
     // -------------------- Initializer Functions -------------------- //
 
@@ -57,17 +64,15 @@ contract EverNFT is
      *  EverNFT contract initialize function
      *
      * @param _dropManager : address of the drop manager contract
-     * @param _erc20tokenAddress : address of the ERC 20 contract
      * @param _treasury : address of the Ever fund collector Multi-sig wallet
-     * @param _baseURI : base uri of the tokens
+     * @param _baseTokenURI : base uri of the tokens
      * @param _name : name of the NFT contract
      * @param _symbol : symbol of the NFT contract
      **/
     function initialize(
         address _dropManager,
-        address _erc20tokenAddress,
         address _treasury,
-        string memory _baseURI,
+        string memory _baseTokenURI,
         string memory _name,
         string memory _symbol
     )
@@ -76,15 +81,16 @@ contract EverNFT is
     {
         __UUPSUpgradeable_init();
         __ERC721_init(_name, _symbol);
+        __ERC721Enumerable_init();
+        __ERC721Pausable_init();
         __Ownable_init();
         if (!ERC165CheckerUpgradeable.supportsInterface(
             _dropManager,
             type(IEverDropManager).interfaceId
         )) revert InvalidInterface();
 
-        baseTokenURI = _baseURI;
+        baseTokenURI = _baseTokenURI;
         dropManager = _dropManager;
-        erc20tokenAddress = _erc20tokenAddress;
         treasury = _treasury;
         // register the IEverNFT Interface
         _registerInterface(type(IEverNFT).interfaceId);
@@ -108,44 +114,17 @@ contract EverNFT is
 
     /**
      * @notice
-     *  Return an array containing the token IDs owned by the given address
-     *
-     * @param _owner : owner address
-     * @return result : array containing all the token IDs owned by `_owner`
-     */
-    function tokensOfOwner(address _owner)
-    external
-    view
-    returns (uint256[] memory)
-    {
-        uint256 tokenCount = balanceOf(_owner);
-        // If _owner doesnt own any tokens, return an empty array
-        if (tokenCount == 0) {
-            return new uint256[](0);
-        } else {
-            uint256[] memory result = new uint256[](tokenCount);
-            for (uint256 index = 0; index < tokenCount; ++index) {
-                result[index] = tokenOfOwnerByIndex(_owner, index);
-            }
-            return result;
-        }
-    }
-
-    /**
-     * @notice
      *  Return the ineligibility reason for not minting NFT
      *
      * @param _to : address of the nft receiver
      * @param _dropId : drop identifier
      * @param _quantity : quantity to be minted
-     * @param _externalIds : ids of the print in Everbloom platform
      * @param _proof : Merkle proof of the owner
      */
     function getIneligibilityReason(
         address _to,
         uint256 _dropId,
         uint128 _quantity,
-        string[] calldata _externalIds,
         bytes32[] calldata _proof
     )
     external
@@ -154,18 +133,21 @@ contract EverNFT is
     {
         IEverDropManager.Drop memory drop = IEverDropManager(dropManager).getDrop(_dropId);
 
+        // Check if the minting of NFT is paused
+        if (paused())
+            return 'MintingPaused';
         // Check if the drop is not sold-out
         if (drop.sold == drop.tokenInfo.supply) return 'DropSoldOut';
         // Check that there are enough tokens available for sale
         if (drop.sold + _quantity > drop.tokenInfo.supply)
             return 'NotEnoughTokensAvailable';
-        if (_quantity != _externalIds.length) {
-            return 'IncorrectExternalIds';
-        }
         // Check if the drop sale is started
         if (block.timestamp < drop.saleOpenTime) {
             if (drop.merkleRoot == 0x0)
                 return 'SaleNotStarted';
+            // Check if the drop sale private is started
+            if (block.timestamp < drop.privateSaleOpenTime)
+                return 'PrivateSaleNotStarted';
 
             bool isWhitelisted = MerkleProof.verify(
                 _proof,
@@ -175,15 +157,18 @@ contract EverNFT is
 
             if (!isWhitelisted)
                 return 'NotWhiteListed';
+
+            if (drop.privateSaleMaxMint != 0) {
+                if (
+                    mintedPerDropPrivateSale[drop.dropId][_to] + _quantity >
+                    drop.privateSaleMaxMint
+                )
+                    return 'MaxMintPerAddress';
+            }
         }
         // Check if the drop sale is ended
         if (block.timestamp > drop.saleCloseTime)
             return 'SaleEnded';
-
-        for (uint128 i = 0; i < _quantity; ++i) {
-            if (externalIdToTokenId[_externalIds[i]] != 0)
-                return 'PrintConflict';
-        }
 
         return '';
     }
@@ -195,14 +180,12 @@ contract EverNFT is
      * @param _to : address of the nft receiver
      * @param _dropId : drop identifier
      * @param _quantity : quantity to be minted
-     * @param _externalIds : ids of the print in Everbloom platform
      * @param _proof : Merkle proof of the owner
      */
     function mint(
         address _to,
         uint256 _dropId,
         uint128 _quantity,
-        string[] calldata _externalIds,
         bytes32[] calldata _proof
     )
     external
@@ -216,13 +199,13 @@ contract EverNFT is
         // Check that there are enough tokens available for sale
         if (drop.sold + _quantity > drop.tokenInfo.supply)
             revert NotEnoughTokensAvailable();
-        if (_quantity != _externalIds.length) {
-            revert IncorrectExternalIds();
-        }
         // Check if the drop sale is started
         if (block.timestamp < drop.saleOpenTime) {
             if (drop.merkleRoot == 0x0)
                 revert SaleNotStarted();
+            // Check if the drop sale private is started
+            if (block.timestamp < drop.privateSaleOpenTime)
+                revert PrivateSaleNotStarted();
 
             bool isWhitelisted = MerkleProof.verify(
                 _proof,
@@ -232,38 +215,46 @@ contract EverNFT is
 
             if (!isWhitelisted)
                 revert NotWhiteListed();
+
+            // check if there is max limit for mint in private sale
+            if (drop.privateSaleMaxMint != 0) {
+                if (
+                    mintedPerDropPrivateSale[drop.dropId][_to] + _quantity >
+                    drop.privateSaleMaxMint
+                )
+                    revert MaxMintPerAddress();
+
+                mintedPerDropPrivateSale[drop.dropId][_to] += _quantity;
+            }
         }
         // Check if the drop sale is ended
         if (block.timestamp > drop.saleCloseTime)
             revert SaleEnded();
         if (drop.tokenInfo.price > 0) {
             // Check that user has sufficient balance
-            if (IERC20(erc20tokenAddress).balanceOf(msg.sender) < drop.tokenInfo.price * _quantity)
+            if (IERC20Upgradeable(drop.tokenInfo.erc20tokenAddress).balanceOf(msg.sender) < drop.tokenInfo.price * _quantity)
                 revert InsufficientBalance();
 
             // Check that user has approved sufficient balance
-            if (IERC20(erc20tokenAddress).allowance(msg.sender, address(this)) < drop.tokenInfo.price * _quantity)
+            if (IERC20Upgradeable(drop.tokenInfo.erc20tokenAddress).allowance(msg.sender, address(this)) < drop.tokenInfo.price * _quantity)
                 revert IncorrectAmountSent();
         }
 
+        IEverDropManager(dropManager).updateDropCounter(drop.dropId, _quantity);
+
         for (uint128 i = 0; i < _quantity; ++i) {
-            if (externalIdToTokenId[_externalIds[i]] != 0)
-                revert PrintConflict(_externalIds[i]);
             _tokenIds.increment();
 
             uint256 newItemId = _tokenIds.current();
             tokenIdToDropId[newItemId] = drop.dropId;
             _safeMint(_to, newItemId);
-            externalIdToTokenId[_externalIds[i]] = newItemId;
 
-            emit NewPrintMinted(drop.dropId, newItemId, _externalIds[i], drop.sold + i + 1);
+            emit NewPrintMinted(drop.dropId, newItemId, drop.sold + i + 1);
         }
-
-        IEverDropManager(dropManager).updateDropCounter(drop.dropId, _quantity);
 
         // transfer Fee to the treasury address
         if (drop.tokenInfo.price > 0) {
-            IERC20(erc20tokenAddress).transferFrom(msg.sender, treasury, drop.tokenInfo.price * _quantity);
+            IERC20Upgradeable(drop.tokenInfo.erc20tokenAddress).safeTransferFrom(msg.sender, treasury, drop.tokenInfo.price * _quantity);
         }
     }
 
@@ -362,19 +353,5 @@ contract EverNFT is
         if (_newTreasury == address(0))
             revert InvalidAddress();
         treasury = _newTreasury;
-    }
-
-    /**
-     * @notice
-     *  Update the ERC20 token Address
-     *  Only the contract owner can perform this operation
-     *
-     * @param _erc20tokenAddress : new ERC20 token Address
-     */
-    function setERC20TokenAddress(address _erc20tokenAddress)
-    external
-    onlyOwner
-    {
-        erc20tokenAddress = _erc20tokenAddress;
     }
 }

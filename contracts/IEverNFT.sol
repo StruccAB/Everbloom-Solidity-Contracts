@@ -8,6 +8,40 @@ pragma solidity ^0.8.4;
  * Ever NFT is link to a Drop created in EverDropManager smart contract
  */
 interface IEverNFT {
+    event NewPrintMinted(uint256 indexed dropId, uint256 indexed tokenId, uint128 serialNumber);
+
+    /**
+     * @notice
+     *  Return the ineligibility reason for not minting NFT
+     *
+     * @param _to : address of the nft receiver
+     * @param _dropId : drop identifier
+     * @param _quantity : quantity to be minted
+     * @param _proof : Merkle proof of the owner
+     */
+    function getIneligibilityReason(
+        address _to,
+        uint256 _dropId,
+        uint128 _quantity,
+        bytes32[] calldata _proof
+    ) external view returns (string memory);
+
+    /**
+     * @notice
+     *  Let a user mint `_quantity` token(s) of the given `_dropId`
+     *
+     * @param _to : address of the nft receiver
+     * @param _dropId : drop identifier
+     * @param _quantity : quantity to be minted
+     * @param _proof : Merkle proof of the owner
+     */
+    function mint(
+        address _to,
+        uint256 _dropId,
+        uint128 _quantity,
+        bytes32[] calldata _proof
+    ) external payable;
+
     /**
      * @notice
      *  pause the minting and transfer
@@ -33,49 +67,10 @@ interface IEverNFT {
 
     /**
      * @notice
-     *  Return an array containing the token IDs owned by the given address
+     *  Update the treasury address
+     *  Only the contract owner can perform this operation
      *
-     * @param _owner : owner address
-     * @return result : array containing all the token IDs owned by `_owner`
+     * @param _newTreasury : new treasury address
      */
-    function tokensOfOwner(address _owner) external view returns (uint256[] memory);
-
-    /**
-     * @notice
-     *  Return the ineligibility reason for not minting NFT
-     *
-     * @param _to : address of the nft receiver
-     * @param _dropId : drop identifier
-     * @param _quantity : quantity to be minted
-     * @param _externalIds : ids of the print in Everbloom platform
-     * @param _proof : Merkle proof of the owner
-     */
-    function getIneligibilityReason(
-        address _to,
-        uint256 _dropId,
-        uint128 _quantity,
-        string[] calldata _externalIds,
-        bytes32[] calldata _proof
-    )
-    external
-    view
-    returns (string memory);
-
-    /**
-     * @notice
-     *  Let a user mint `_quantity` token(s) of the given `_dropId`
-     *
-     * @param _to : address of the nft receiver
-     * @param _dropId : drop identifier
-     * @param _quantity : quantity to be minted
-     * @param _externalIds : ids of the print in Everbloom platform
-     * @param _proof : Merkle proof of the owner
-     */
-    function mint(
-        address _to,
-        uint256 _dropId,
-        uint128 _quantity,
-        string[] calldata _externalIds,
-        bytes32[] calldata _proof
-    ) external payable;
+    function setTreasury(address _newTreasury) external;
 }
