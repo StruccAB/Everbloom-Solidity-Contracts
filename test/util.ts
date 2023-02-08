@@ -10,6 +10,7 @@ export const SUB_ADMIN_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('S
 export const CREATOR_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('CREATOR_ROLE'));
 export const ERC_20_DECIMAL_POINT = 1_000_000;
 export const BASE_URI = 'https://api.everbloom.app/';
+export const UPDATED_BASE_URI = 'https://api.everbloom.app/v2';
 export const NFT_NAME = 'EverNFT';
 export const NFT_SYMBOL = 'EverNFT';
 export const NFT_PRICE = 100 * ERC_20_DECIMAL_POINT;
@@ -28,6 +29,7 @@ export async function deployContracts() {
 
     const EverDropManager = await ethers.getContractFactory("EverDropManager");
     const EverNFT = await ethers.getContractFactory("EverNFT");
+    const EverNFT2 = await ethers.getContractFactory("EverNFT");
     const EverErrors = await ethers.getContractFactory("EverErrors");
     const Usdc = await ethers.getContractFactory("USDC");
 
@@ -39,10 +41,16 @@ export async function deployContracts() {
         [everDropManager.address, owner.address, BASE_URI, NFT_NAME, NFT_SYMBOL],
         { kind: 'uups' },
     );
+    const everNFT2 = await upgrades.deployProxy(
+        EverNFT2,
+        [everDropManager.address, owner.address, BASE_URI, NFT_NAME, NFT_SYMBOL],
+        { kind: 'uups' },
+    );
 
     return {
         everDropManager,
         everNFT,
+        everNFT2,
         everErrors,
         usdc,
         owner,

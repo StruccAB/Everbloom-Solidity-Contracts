@@ -35,6 +35,19 @@ describe("Ever Drop Manager", function () {
         await expect(createDrop(everDropManager, everNFT, creator1, usdc.address)).to.be.not.reverted;
       });
 
+      it("Should be able to get created drop using external id", async function () {
+        const { everDropManager, everNFT, subAdmin1, creator1, usdc } = await loadFixture(deployContracts);
+        await everDropManager.grantRole(everDropManager.SUB_ADMIN_ROLE(), subAdmin1.address)
+        await everDropManager.connect(subAdmin1).grantRole(everDropManager.CREATOR_ROLE(), creator1.address);
+
+        await expect(createDrop(everDropManager, everNFT, creator1, usdc.address)).to.be.not.reverted;
+        await expect(
+            createDrop(everDropManager, everNFT, creator1, usdc.address, { externalId: getExternalId(2)})
+        ).to.be.not.reverted;
+        await expect(await everDropManager.getDropByExternalId(getExternalId(2))).to.include(getExternalId(2));
+        await expect(await everDropManager.getDropByExternalId(getExternalId(2))).to.not.include(getExternalId(3));
+      });
+
       it("Should not create a drop when nft address is invalid", async function () {
         const { everDropManager, everNFT, subAdmin1, creator1, usdc } = await loadFixture(deployContracts);
         await everDropManager.grantRole(everDropManager.SUB_ADMIN_ROLE(), subAdmin1.address)
@@ -72,7 +85,7 @@ describe("Ever Drop Manager", function () {
       });
 
       it("Should update a drop when called by sub admin", async function () {
-        const { everDropManager, everNFT, subAdmin1, creator1, usdc } = await loadFixture(deployContracts);
+        const { everDropManager, everNFT, subAdmin1, creator1, usdc, everErrors } = await loadFixture(deployContracts);
         await everDropManager.grantRole(everDropManager.SUB_ADMIN_ROLE(), subAdmin1.address);
         await everDropManager.connect(subAdmin1).grantRole(everDropManager.CREATOR_ROLE(),creator1.address);
         await createDrop(everDropManager, everNFT, creator1, usdc.address);
@@ -92,6 +105,8 @@ describe("Ever Drop Manager", function () {
         const dropId = Number(drop[0]);
 
         await expect(everDropManager.connect(subAdmin1).setSupply(dropId, UPDATES.supply)).to.be.not.reverted;
+        await expect(everDropManager.connect(subAdmin1).setSupply(dropId, 0))
+            .to.be.revertedWithCustomError(everErrors, 'InvalidSupply');
         await expect(everDropManager.connect(subAdmin1).setSalesInfo(
             dropId,
             UPDATES.saleOpenDate,

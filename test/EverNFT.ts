@@ -10,7 +10,9 @@ import {
   mintNFTs,
   NFT_NAME,
   NFT_PRICE,
-  NFT_SYMBOL, transferToken,
+  NFT_SYMBOL,
+  transferToken,
+  UPDATED_BASE_URI,
 } from "./util";
 
 describe("Ever NFT", function () {
@@ -73,6 +75,22 @@ describe("Ever NFT", function () {
 
   describe("NFT", function () {
     describe("Validations", function () {
+      it("Should update treasury address when called by owner only", async function () {
+        const { everNFT, owner, user1, everErrors } = await loadFixture(deployContracts);
+
+        await expect(everNFT.setTreasury(owner.address)).to.be.not.reverted;
+        await expect(everNFT.setTreasury(ethers.constants.AddressZero))
+            .to.be.revertedWithCustomError(everErrors, 'InvalidAddress');
+        await expect(everNFT.connect(user1).setTreasury(owner.address)).to.be.reverted;
+      });
+
+      it("Should update base uri when called by owner only", async function () {
+        const { everNFT, user1 } = await loadFixture(deployContracts);
+
+        await expect(everNFT.setBaseURI(UPDATED_BASE_URI)).to.be.not.reverted;
+        await expect(everNFT.connect(user1).setBaseURI(UPDATED_BASE_URI)).to.be.reverted;
+      });
+
       it("Should mint an NFT when called by a user", async function () {
         const { everDropManager, everNFT, owner, user1, usdc } = await loadFixture(deployContracts);
         await createDrop(everDropManager, everNFT, owner, usdc.address);
@@ -85,6 +103,12 @@ describe("Ever NFT", function () {
         await approveToken(usdc, user1, everNFT.address , amount);
 
         await expect(dropNftSold).to.equal(0);
+        expect(await getIneligibilityMintNFTs(
+            everNFT,
+            user1,
+            dropId,
+            quantity,
+        )).to.be.equal('');
         await expect(mintNFTs(
             everNFT,
             user1,
@@ -219,6 +243,22 @@ describe("Ever NFT", function () {
             dropId,
             quantity,
         )).to.be.revertedWith('Pausable: paused');
+      });
+
+      it("Should not mint when call is made using a malicious NFT contract", async function () {
+        const { everDropManager, everNFT, everNFT2, owner, user1, usdc, everErrors } = await loadFixture(deployContracts);
+        await createDrop(everDropManager, everNFT, owner, usdc.address, { price: 0 });
+        const drop = await everDropManager.drops(0);
+        const dropId = Number(drop[0]);
+        const quantity = 1;
+        const amount = 0;
+
+        await expect(mintNFTs(
+            everNFT2,
+            user1,
+            dropId,
+            quantity,
+        )).to.be.revertedWithCustomError(everErrors, 'UnauthorizedUpdate');
       });
 
       it("Should not mint an NFT when amount is correct but allowance is insufficient", async function () {

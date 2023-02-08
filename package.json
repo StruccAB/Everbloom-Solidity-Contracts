@@ -11,7 +11,7 @@
     "compile": "hardhat compile",
     "test": "hardhat test",
     "test:gas": "REPORT_GAS=true hardhat test",
-    "test:coverage": "hardhat coverage",
+    "test:coverage": "hardhat coverage --solcoverjs ./.solcover.ts",
     "check": "hardhat check",
     "typechain": "hardhat typechain",
     "node": "hardhat node"
