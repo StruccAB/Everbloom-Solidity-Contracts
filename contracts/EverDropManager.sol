@@ -59,7 +59,6 @@ contract EverDropManager is
         __UUPSUpgradeable_init();
         __AccessControl_init();
         __ERC165Storage_init();
-        _setRoleAdmin(SUB_ADMIN_ROLE, DEFAULT_ADMIN_ROLE);
         _setRoleAdmin(CREATOR_ROLE, SUB_ADMIN_ROLE);
         _grantRole(DEFAULT_ADMIN_ROLE, _admin);
         _grantRole(CREATOR_ROLE, _admin);
@@ -145,7 +144,6 @@ contract EverDropManager is
      * @param _nft : NFT contract address
      * @param _price : initial price of 1 NFT
      * @param _erc20tokenAddress : address of ERC20 in which payment will be made
-     * @param _erc20tokenDenominator : denominator of the supported payment ERC20 token
      * @param _supply : total number of NFT for this drop (accross all associated tokenId)
      * @param _royaltySharePerToken : total percentage of royalty evenly distributed among NFT holders
      * @param _externalId : id of the print in legacy app
@@ -157,7 +155,6 @@ contract EverDropManager is
         address _nft,
         uint256 _price,
         address _erc20tokenAddress,
-        uint256 _erc20tokenDenominator,
         uint128 _supply,
         uint128 _royaltySharePerToken,
         string memory _externalId,
@@ -190,7 +187,6 @@ contract EverDropManager is
             TokenInfo(
                 _price,
                 _erc20tokenAddress,
-                _erc20tokenDenominator,
                 _supply,
                 _royaltySharePerToken
             ),

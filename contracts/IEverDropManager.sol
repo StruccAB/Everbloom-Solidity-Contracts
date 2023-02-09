@@ -60,14 +60,12 @@ interface IEverDropManager {
      *
      * @param price : initial price of 1 token
      * @param erc20tokenAddress : address of the supported payment ERC20 token for this drop
-     * @param erc20tokenDenominator : denominator of the supported payment ERC20 token for this drop
      * @param supply : total number of tokens for this drop (across all associated tokenId)
      * @param royaltySharePerToken : total percentage of royalty evenly distributed among tokens holders
      */
     struct TokenInfo {
         uint256 price;
         address erc20tokenAddress;
-        uint256 erc20tokenDenominator;
         uint128 supply;
         uint128 royaltySharePerToken;
     }
@@ -110,7 +108,6 @@ interface IEverDropManager {
      * @param _nft : NFT contract address
      * @param _price : initial price of 1 NFT
      * @param _erc20tokenAddress : address of ERC20 in which payment will be made
-     * @param _erc20tokenDenominator : denominator of the supported payment ERC20 token
      * @param _supply : total number of NFT for this drop (accross all associated tokenId)
      * @param _royaltySharePerToken : total percentage of royalty evenly distributed among NFT holders
      * @param _externalId : id of the print in legacy app
@@ -122,7 +119,6 @@ interface IEverDropManager {
         address _nft,
         uint256 _price,
         address _erc20tokenAddress,
-        uint256 _erc20tokenDenominator,
         uint128 _supply,
         uint128 _royaltySharePerToken,
         string memory _externalId,
