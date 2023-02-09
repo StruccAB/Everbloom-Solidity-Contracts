@@ -119,12 +119,14 @@ contract EverNFT is
      * @param _to : address of the nft receiver
      * @param _dropId : drop identifier
      * @param _quantity : quantity to be minted
+     * @param _capQuantity : cap quantity if greater then the max mint per address in WL
      * @param _proof : Merkle proof of the owner
      */
     function getIneligibilityReason(
         address _to,
         uint256 _dropId,
         uint128 _quantity,
+        bool _capQuantity,
         bytes32[] calldata _proof
     )
     external
@@ -162,8 +164,10 @@ contract EverNFT is
                 if (
                     mintedPerDropPrivateSale[drop.dropId][_to] + _quantity >
                     drop.privateSaleMaxMint
-                )
-                    return 'MaxMintPerAddress';
+                ) {
+                    if (!_capQuantity)
+                        return 'MaxMintPerAddress';
+                }
             }
         }
         // Check if the drop sale is ended
@@ -180,12 +184,14 @@ contract EverNFT is
      * @param _to : address of the nft receiver
      * @param _dropId : drop identifier
      * @param _quantity : quantity to be minted
+     * @param _capQuantity : cap quantity if greater then the max mint per address in WL
      * @param _proof : Merkle proof of the owner
      */
     function mint(
         address _to,
         uint256 _dropId,
         uint128 _quantity,
+        bool _capQuantity,
         bytes32[] calldata _proof
     )
     external
@@ -221,8 +227,12 @@ contract EverNFT is
                 if (
                     mintedPerDropPrivateSale[drop.dropId][_to] + _quantity >
                     drop.privateSaleMaxMint
-                )
-                    revert MaxMintPerAddress();
+                ) {
+                    if (!_capQuantity)
+                        revert MaxMintPerAddress();
+
+                    _quantity = drop.privateSaleMaxMint - mintedPerDropPrivateSale[drop.dropId][_to];
+                }
 
                 mintedPerDropPrivateSale[drop.dropId][_to] += _quantity;
             }
