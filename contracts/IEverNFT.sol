@@ -17,12 +17,14 @@ interface IEverNFT {
      * @param _to : address of the nft receiver
      * @param _dropId : drop identifier
      * @param _quantity : quantity to be minted
+     * @param _capQuantity : cap quantity if greater then the max mint per address in WL
      * @param _proof : Merkle proof of the owner
      */
     function getIneligibilityReason(
         address _to,
         uint256 _dropId,
         uint128 _quantity,
+        bool _capQuantity,
         bytes32[] calldata _proof
     ) external view returns (string memory);
 
@@ -33,12 +35,14 @@ interface IEverNFT {
      * @param _to : address of the nft receiver
      * @param _dropId : drop identifier
      * @param _quantity : quantity to be minted
+         * @param _capQuantity : cap quantity if greater then the max mint per address in WL
      * @param _proof : Merkle proof of the owner
      */
     function mint(
         address _to,
         uint256 _dropId,
         uint128 _quantity,
+        bool _capQuantity,
         bytes32[] calldata _proof
     ) external payable;
 
