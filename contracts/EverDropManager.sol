@@ -59,7 +59,6 @@ contract EverDropManager is
         __UUPSUpgradeable_init();
         __AccessControl_init();
         __ERC165Storage_init();
-        _setRoleAdmin(SUB_ADMIN_ROLE, DEFAULT_ADMIN_ROLE);
         _setRoleAdmin(CREATOR_ROLE, SUB_ADMIN_ROLE);
         _grantRole(DEFAULT_ADMIN_ROLE, _admin);
         _grantRole(CREATOR_ROLE, _admin);
