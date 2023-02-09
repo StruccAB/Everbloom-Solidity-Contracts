@@ -8,6 +8,7 @@ import {
   deployContracts,
   getIneligibilityMintNFTs,
   mintNFTs,
+  NFT_MERKLE_ROOT,
   NFT_NAME,
   NFT_PRICE,
   NFT_SYMBOL,
@@ -539,12 +540,13 @@ describe("Ever NFT", function () {
 
       it("Should not mint an NFT when not enough tokens are available", async function () {
         const { everDropManager, everNFT, everErrors, owner, user1, usdc } = await loadFixture(deployContracts);
+        const supply = 5;
         await createDrop(everDropManager, everNFT, owner, usdc.address, {
-          supply: 1
+          supply
         })
         const drop = await everDropManager.drops(0);
         const dropId = Number(drop[0]);
-        const quantity = 2;
+        const quantity = 10;
         const amount = NFT_PRICE * quantity;
         await transferToken(usdc, owner, user1, amount);
         await approveToken(usdc, user1, everNFT.address , amount);
@@ -561,6 +563,16 @@ describe("Ever NFT", function () {
             dropId,
             quantity,
         )).to.be.revertedWithCustomError(everErrors, 'NotEnoughTokensAvailable');
+
+        await expect(mintNFTs(
+            everNFT,
+            user1,
+            dropId,
+            quantity,
+            [NFT_MERKLE_ROOT],
+            true
+        )).to.be.not.reverted;
+        await expect((await everNFT.balanceOf(user1.address))).to.equal(supply);
       });
     });
 
