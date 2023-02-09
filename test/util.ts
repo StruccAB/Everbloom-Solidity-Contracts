@@ -106,7 +106,6 @@ export async function createDrop(
         updates.nftAddress || everNFT.address,
         updates.price !== undefined ? updates.price : NFT_PRICE,
         erc20Address,
-        ERC_20_DECIMAL_POINT,
         updates.supply !== undefined ? updates.supply : NFT_SUPPLY,
         updates.royaltyPerShare || NFT_ROYALTY_PER_SHARE,
         updates.externalId || getExternalId(),
