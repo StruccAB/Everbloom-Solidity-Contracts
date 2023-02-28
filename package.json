@@ -5,9 +5,11 @@
   "main": "index.js",
   "scripts": {
     "deploy": "hardhat --network matic run scripts/upgradable-deploy-matic.ts",
+    "deploy:prod": "hardhat --network polygon run scripts/prod-upgradable-deploy-matic.ts",
     "upgrade:dropManager": "hardhat --network matic run scripts/upgrade-proxy-drop-manager-matic.ts",
     "upgrade:everNft": "hardhat --network matic run scripts/upgrade-proxy-ever-nft-matic.ts",
-    "verify": "hardhat verify --network matic 0x9cbf8826C78eAE0ae9BCf8C1765ad8330ff78ceF",
+    "verify": "hardhat verify --network matic 0xeDCB2068246a2e296CD793eFf9552F8799f807dB",
+    "verify:prod": "hardhat verify --network polygon 0x5e5B713bCe70df6095eb08bb6d0570403E68Bf50",
     "compile": "hardhat compile",
     "test": "hardhat test",
     "test:gas": "REPORT_GAS=true hardhat test",

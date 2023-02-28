@@ -174,6 +174,9 @@ contract EverNFT is
         if (block.timestamp > drop.saleCloseTime)
             return 'SaleEnded';
 
+        if (drop.nft != address(this))
+            return 'UnauthorizedUpdate';
+
         return '';
     }
 

@@ -8,7 +8,14 @@ import '@nomiclabs/hardhat-etherscan';
 
 require('dotenv').config();
 
-const { API_URL, PRIVATE_KEY, REPORT_GAS, POLYGONSCAN_API_KEY } = process.env;
+const {
+  API_URL,
+  PRIVATE_KEY,
+  REPORT_GAS,
+  POLYGONSCAN_API_KEY,
+  PROD_API_URL,
+  PROD_PRIVATE_KEY,
+} = process.env;
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -23,6 +30,10 @@ const config: HardhatUserConfig = {
   defaultNetwork: 'hardhat',
   networks: {
     hardhat: {},
+    polygon: {
+      url: PROD_API_URL,
+      accounts: [String(PROD_PRIVATE_KEY)]
+    },
     matic: {
       url: API_URL,
       accounts: [String(PRIVATE_KEY)]

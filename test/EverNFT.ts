@@ -254,6 +254,12 @@ describe("Ever NFT", function () {
         const quantity = 1;
         const amount = 0;
 
+        expect(await getIneligibilityMintNFTs(
+            everNFT2,
+            user1,
+            dropId,
+            quantity,
+        )).to.be.equal('UnauthorizedUpdate');
         await expect(mintNFTs(
             everNFT2,
             user1,
