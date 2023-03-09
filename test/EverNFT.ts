@@ -124,7 +124,7 @@ describe("Ever NFT", function () {
         ).to.equal(dropId);
         await expect(
             await everNFT.tokenURI(1)
-        ).to.equal(BASE_URI + 1);
+        ).to.equal(`${BASE_URI + everNFT.address.toLowerCase()}/1`);
         await expect((await everDropManager.drops(0))[1]).to.equal(1)
       });
 
@@ -197,6 +197,7 @@ describe("Ever NFT", function () {
             quantity,
             proof
         )).to.be.not.reverted;
+        expect(await everNFT.tokenURI(1)).to.equal(`${BASE_URI + everNFT.address.toLowerCase()}/1`);
       });
 
       it("Should transfer the funds to the drop owner", async function () {
