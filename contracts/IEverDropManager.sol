@@ -23,6 +23,7 @@ interface IEverDropManager {
     event DropSupplyUpdated(uint256 indexed dropId, uint128 supply);
     event DropRightHolderUpdated(uint256 indexed dropId, address owner);
     event DropMerkleRootUpdated(uint256 indexed dropId, bytes32 merkleRoot);
+    event DropPriceUpdated(uint256 indexed dropId, uint256 price);
 
     /**
      * @notice
@@ -166,6 +167,16 @@ interface IEverDropManager {
         uint64 _privateSaleOpenTime,
         uint64 _privateSaleMaxMint
     ) external;
+
+    /**
+     * @notice
+     *  Update the Drop `_dropId` price
+     *  Only the contract SUB_ADMIN_ROLE can perform this operation
+     *
+     * @param _dropId :  drop identifier of the drop to be updated
+     * @param _price : new price eof the drop
+     */
+    function setPrice(uint256 _dropId, uint256 _price) external;
 
     /**
      * @notice

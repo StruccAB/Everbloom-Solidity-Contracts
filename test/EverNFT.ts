@@ -144,6 +144,39 @@ describe("Ever NFT", function () {
         )).to.be.not.reverted;
       });
 
+      it("Should mint an NFT when drop price is updated", async function () {
+        const { everDropManager, everNFT, usdc, owner, user1, everErrors } = await loadFixture(deployContracts);
+        await createDrop(everDropManager, everNFT, owner, usdc.address, { price: 0 });
+        const drop = await everDropManager.drops(0);
+        const dropId = Number(drop[0]);
+        const quantity = 1;
+
+        await expect(mintNFTs(
+            everNFT,
+            user1,
+            dropId,
+            quantity,
+        )).to.be.not.reverted;
+
+        const UPDATED_PRICE = NFT_PRICE;
+        await expect(everDropManager.setPrice(dropId, UPDATED_PRICE)).to.be.not.reverted;
+
+        await expect(mintNFTs(
+            everNFT,
+            user1,
+            dropId,
+            quantity,
+        )).to.be.revertedWithCustomError(everErrors, 'InsufficientBalance');
+        await transferToken(usdc, owner, user1, UPDATED_PRICE);
+        await approveToken(usdc, user1, everNFT.address , UPDATED_PRICE);
+        await expect(mintNFTs(
+            everNFT,
+            user1,
+            dropId,
+            quantity,
+        )).to.be.not.reverted;
+      });
+
       it("Should mint multiple NFT when called by a user", async function () {
         const { everDropManager, everNFT, owner, user1, usdc } = await loadFixture(deployContracts);
         await createDrop(everDropManager, everNFT, owner, usdc.address);

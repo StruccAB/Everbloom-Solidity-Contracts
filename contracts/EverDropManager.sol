@@ -280,6 +280,23 @@ contract EverDropManager is
 
     /**
      * @notice
+     *  Update the Drop `_dropId` price
+     *  Only the contract SUB_ADMIN_ROLE can perform this operation
+     *
+     * @param _dropId :  drop identifier of the drop to be updated
+     * @param _price : new price eof the drop
+     */
+    function setPrice(uint256 _dropId, uint256 _price)
+    external
+    onlyRole(SUB_ADMIN_ROLE)
+    {
+        drops[_dropId].tokenInfo.price = _price;
+
+        emit DropPriceUpdated(_dropId, _price);
+    }
+
+    /**
+     * @notice
      *  Update the Drop `_dropId` merkle root
      *  Only the contract SUB_ADMIN_ROLE can perform this operation
      *
