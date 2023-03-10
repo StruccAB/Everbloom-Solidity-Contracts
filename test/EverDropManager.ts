@@ -3,7 +3,7 @@ import { ethers } from "hardhat";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import {
   createDrop,
-  deployContracts,
+  deployContracts, ERC_20_DECIMAL_POINT,
   getAccessControlRevertReason,
   getExternalId,
   SUB_ADMIN_ROLE
@@ -96,6 +96,7 @@ describe("Ever Drop Manager", function () {
         );
         const UPDATES = {
           supply: 10,
+          price: 5 * ERC_20_DECIMAL_POINT,
           saleOpenDate: Math.floor(new Date('2024-1-1').getTime() / 1000),
           saleCloseDate: Math.floor(new Date('2024-1-1').getTime() / 1000),
           privateSaleOpenTime: Math.floor(new Date('2023-1-1').getTime() / 1000),
@@ -109,6 +110,7 @@ describe("Ever Drop Manager", function () {
         await expect(everDropManager.connect(subAdmin1).setSupply(dropId, UPDATES.supply)).to.be.not.reverted;
         await expect(everDropManager.connect(subAdmin1).setSupply(dropId, 0))
             .to.be.revertedWithCustomError(everErrors, 'InvalidSupply');
+        await expect(everDropManager.connect(subAdmin1).setPrice(dropId, UPDATES.price)).to.be.not.reverted;
         await expect(everDropManager.connect(subAdmin1).setSalesInfo(
             dropId,
             UPDATES.saleOpenDate,
@@ -123,6 +125,7 @@ describe("Ever Drop Manager", function () {
 
         const updatedDrop = await everDropManager.drops(0);
         const newSupply = Number(updatedDrop.tokenInfo.supply);
+        const newPrice = Number(updatedDrop.tokenInfo.price);
         const newSaleOpenTime = Number(updatedDrop.saleOpenTime);
         const newSaleCloseTime = Number(updatedDrop.saleCloseTime);
         const newPrivateSaleCloseTime = Number(updatedDrop.privateSaleOpenTime);
@@ -130,6 +133,7 @@ describe("Ever Drop Manager", function () {
         const newMerkleRoot = String(updatedDrop.merkleRoot);
 
         await expect(newSupply).to.equal(UPDATES.supply);
+        await expect(newPrice).to.equal(UPDATES.price);
         await expect(newSaleOpenTime).to.equal(UPDATES.saleOpenDate);
         await expect(newSaleCloseTime).to.equal(UPDATES.saleCloseDate);
         await expect(newPrivateSaleCloseTime).to.equal(UPDATES.privateSaleOpenTime);
@@ -168,6 +172,7 @@ describe("Ever Drop Manager", function () {
         );
         const UPDATES = {
           supply: 10,
+          price: 5 * ERC_20_DECIMAL_POINT,
           saleOpenDate: Math.floor(new Date('2024-1-1').getTime() / 1000),
           saleCloseDate: Math.floor(new Date('2024-1-1').getTime() / 1000),
           privateSaleOpenTime: Math.floor(new Date('2023-1-1').getTime() / 1000),
@@ -179,6 +184,7 @@ describe("Ever Drop Manager", function () {
         const dropId = Number(drop[0]);
 
         await expect(everDropManager.connect(creator1).setSupply(dropId, UPDATES.supply)).to.be.reverted;
+        await expect(everDropManager.connect(creator1).setPrice(dropId, UPDATES.price)).to.be.reverted;
         await expect(everDropManager.connect(creator1).setSalesInfo(
             dropId,
             UPDATES.saleOpenDate,
@@ -205,6 +211,7 @@ describe("Ever Drop Manager", function () {
         );
         const UPDATES = {
           supply: 10,
+          price: 5 * ERC_20_DECIMAL_POINT,
           saleOpenDate: Math.floor(new Date('2024-1-1').getTime() / 1000),
           saleCloseDate: Math.floor(new Date('2024-1-1').getTime() / 1000),
           privateSaleOpenTime: Math.floor(new Date('2023-1-1').getTime() / 1000),
@@ -216,6 +223,7 @@ describe("Ever Drop Manager", function () {
         const dropId = Number(drop[0]);
 
         await expect(everDropManager.connect(user1).setSupply(dropId, UPDATES.supply)).to.be.reverted;
+        await expect(everDropManager.connect(user1).setPrice(dropId, UPDATES.price)).to.be.reverted;
         await expect(everDropManager.connect(user1).setSalesInfo(
             dropId,
             UPDATES.saleOpenDate,
@@ -252,6 +260,19 @@ describe("Ever Drop Manager", function () {
         await expect(everDropManager.setSupply(dropId, UPDATED_SUPPLY))
             .to.emit(everDropManager, "DropSupplyUpdated")
             .withArgs(dropId, UPDATED_SUPPLY);
+      });
+
+      it("Should emit an event on updating drop price", async function () {
+        const { everDropManager, everNFT, owner, usdc } = await loadFixture(deployContracts);
+
+        await createDrop(everDropManager, everNFT, owner, usdc.address)
+        const drop = await everDropManager.drops(0);
+        const dropId = Number(drop[0]);
+        const UPDATED_PRICE = 200 * ERC_20_DECIMAL_POINT;
+
+        await expect(everDropManager.setPrice(dropId, UPDATED_PRICE))
+            .to.emit(everDropManager, "DropPriceUpdated")
+            .withArgs(dropId, UPDATED_PRICE);
       });
 
       it("Should emit an event on updating drop sale info", async function () {

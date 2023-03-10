@@ -12,6 +12,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import { MerkleProof } from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 import "./IEverDropManager.sol";
 import "./IEverNFT.sol";
@@ -302,7 +303,11 @@ contract EverNFT is
     override
     returns (string memory)
     {
-        return baseTokenURI;
+        return string.concat(
+            baseTokenURI,
+            Strings.toHexString(address(this)),
+            "/"
+        );
     }
 
     // -------------------- Admin-Only Functions -------------------- //
