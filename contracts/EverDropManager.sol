@@ -130,6 +130,9 @@ contract EverDropManager is
     override(AccessControlUpgradeable, ERC165StorageUpgradeable)
     returns (bool)
     {
+        if (type(IEverDropManager).interfaceId == interfaceId) {
+            return true;
+        }
         return super.supportsInterface(interfaceId);
     }
 
