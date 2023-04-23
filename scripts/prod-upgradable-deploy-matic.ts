@@ -1,28 +1,35 @@
 import { ethers, upgrades } from "hardhat";
 
-const { PROD_PUBLIC_KEY } = process.env;
+const {
+  PROD_DROP_MANAGER_CONTRACT_ADDRESS,
+  PROD_PUBLIC_KEY,
+} = process.env;
 
 async function main() {
-  const EverDropManager = await ethers.getContractFactory("EverDropManager");
+  let everDropManager;
+  if (!PROD_DROP_MANAGER_CONTRACT_ADDRESS) {
+    const EverDropManager = await ethers.getContractFactory("EverDropManager");
+    everDropManager = await upgrades.deployProxy(EverDropManager, [PROD_PUBLIC_KEY], { kind: 'uups' })
+    await everDropManager.deployed();
+  }
+
   const EverNFT = await ethers.getContractFactory("EverNFT");
-
-  const everDropManager = await upgrades.deployProxy(EverDropManager, [PROD_PUBLIC_KEY], { kind: 'uups' })
-  await everDropManager.deployed();
-
   const everNFT = await upgrades.deployProxy(
       EverNFT,
       [
-          everDropManager.address,
-          '0x1517a42400f8584034d4317c49fbcf561718d5ee',
+          everDropManager?.address || PROD_DROP_MANAGER_CONTRACT_ADDRESS,
+          '0x1517a42400f8584034d4317c49fbcf561718d5ee', // TREASURY
           'https://api.everbloom.app/v1/metadata/',
-          'EverNFT',
-          'EverNFT',
+          'Ever Public', // Name
+          'EVRBLMPB', // Symbol
       ],
       { kind: 'uups' }
       );
   await everNFT.deployed();
 
-  console.log("EverDropManager Contract deployed to address:", everDropManager.address)
+  if (everDropManager?.address) {
+    console.log("EverDropManager Contract deployed to address:", everDropManager.address)
+  }
   console.log("EverNFT Contract deployed to address:", everNFT.address)
 }
 
